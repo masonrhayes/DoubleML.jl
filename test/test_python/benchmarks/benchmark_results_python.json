@@ -1,0 +1,12 @@
+{
+  "language": "Python",
+  "n_obs": 100000,
+  "dim_x": 1000,
+  "alpha": 0.5,
+  "learner": "XGBRegressor",
+  "n_folds": 5,
+  "benchmark_median_sec": 310.7773275090003,
+  "coefficient": 0.4855432427406008,
+  "std_error": 0.0031458748017277453,
+  "data_file": "/home/mason/Documents/projects/DoubleML.jl/test/test_python/benchmarks/benchmark_data.csv"
+}

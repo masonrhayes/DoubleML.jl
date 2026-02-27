@@ -1,0 +1,11 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+DocumenterTools = "35a29f4d-8980-5a13-9543-d66fff28ecb8"
+DoubleML = "77251493-8087-46d5-be33-49d84ce818f6"
+LiveServer = "16fef848-5104-11e9-1b77-fb7a48bbb589"
+Pluto = "c3e4b0f8-55cb-11ea-2926-15256bba5781"
+PlutoStaticHTML = "359b1769-a58e-495b-9770-312e911026ad"
+StatsFuns = "4c63d2b9-4356-54db-8cca-17b64c39e42c"
+
+[compat]
+Documenter = "1"

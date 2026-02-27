@@ -1,0 +1,1 @@
+{"dim_x":1000,"learner":"EvoTreeRegressor","benchmark_median_sec":34.677150404,"n_folds":5,"alpha":0.5,"language":"Julia","std_error":0.0031357217,"data_file":"/home/mason/Documents/projects/DoubleML.jl/test/test_python/benchmarks/benchmark_data.csv","n_obs":100000,"coefficient":0.4901858}

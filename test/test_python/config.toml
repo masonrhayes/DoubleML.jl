@@ -1,0 +1,91 @@
+# Test Configuration for DoubleML.jl Python Validation
+# This is the SINGLE source of truth for all bidirectional tests
+# To add a new model, add an entry to the [[models]] array
+
+[data_generation]
+n_obs = 5000
+dim_x = 20
+theta = 0.5        # True IRM effect
+alpha = 0.5        # True PLR effect
+lplr_alpha = 0.5   # True LPLR effect
+rng_seed = 42
+
+[model_fitting]
+n_folds = 3
+n_rep = 1
+tolerance = 0.50   # 50% relative difference threshold, allowing for difference in ML methods in Julia v Python.
+# and for differences in resampling.
+
+# Learner definitions (Julia and Python using sklearn via MLJScikitLearnInterface)
+[learners]
+[learners.RF]
+julia = { package = "MLJScikitLearnInterface", type = "RandomForestRegressor", n_estimators = 30, random_state = 42 }
+julia_classifier = { package = "MLJScikitLearnInterface", type = "RandomForestClassifier", n_estimators = 30, random_state = 42 }
+python = { module = "sklearn.ensemble", class = "RandomForestRegressor", n_estimators = 30, n_jobs = -1, random_state = 42 }
+python_classifier = { module = "sklearn.ensemble", class = "RandomForestClassifier", n_estimators = 30, n_jobs = -1, random_state = 42 }
+
+[learners.GB]
+julia = { package = "MLJScikitLearnInterface", type = "HistGradientBoostingRegressor", max_depth = 3, early_stopping = true, n_iter_no_change = 5, learning_rate = 0.05, random_state = 42 }
+julia_classifier = { package = "MLJScikitLearnInterface", type = "HistGradientBoostingClassifier", max_depth = 3, early_stopping = true, n_iter_no_change = 5, learning_rate = 0.05, random_state = 42 }
+python = { module = "sklearn.ensemble", class = "HistGradientBoostingRegressor", max_depth = 3, early_stopping = true, n_iter_no_change = 5, learning_rate = 0.05, random_state = 42 }
+python_classifier = { module = "sklearn.ensemble", class = "HistGradientBoostingClassifier", max_depth = 3, early_stopping = true, n_iter_no_change = 5, learning_rate = 0.05, random_state = 42 }
+
+# Model test definitions
+[[models]]
+name = "PLR"
+julia_type = "DoubleMLPLR"
+python_type = "DoubleMLPLR"
+data_generator_julia = "make_plr_CCDDHNR2018"
+data_generator_python = "make_plr_CCDDHNR2018"
+
+  [[models.scores]]
+  name = "partialling_out"
+  julia_score = "partialling_out"
+  python_score = "partialling out"
+  learners = ["RF", "GB"]
+  
+  [[models.scores]]
+  name = "IV_type"
+  julia_score = "IV_type"
+  python_score = "IV-type"
+  requires_ml_g = true
+  learners = ["RF", "GB"]
+
+[[models]]
+name = "IRM"
+julia_type = "DoubleMLIRM"
+python_type = "DoubleMLIRM"
+data_generator_julia = "make_irm_data"
+data_generator_python = "make_irm_data"
+
+  [[models.scores]]
+  name = "ATE"
+  julia_score = "ATE"
+  python_score = "ATE"
+  learners = ["RF", "GB"]
+  normalize_ipw = [false, true]
+  
+  [[models.scores]]
+  name = "ATTE"
+  julia_score = "ATTE"
+  python_score = "ATTE"
+  learners = ["RF", "GB"]
+
+[[models]]
+name = "LPLR"
+julia_type = "DoubleMLLPLR"
+python_type = "DoubleMLLPLR"
+data_generator_julia = "make_lplr_LZZ2020"
+data_generator_python = "make_lplr_LZZ2020"
+
+  [[models.scores]]
+  name = "nuisance_space"
+  julia_score = "nuisance_space"
+  python_score = "nuisance_space"
+  learners = ["RF", "GB"]
+  
+  [[models.scores]]
+  name = "instrument"
+  julia_score = "instrument"
+  python_score = "instrument"
+  learners = ["RF", "GB"]

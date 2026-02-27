@@ -1,0 +1,39 @@
+# Python packaging artifacts
+*.egg-info/
+dist/
+build/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environment
+.venv/
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Data files (generated during tests)
+data/*.csv
+data/*.json
+!data/.gitkeep
+
+# Test outputs
+python_comparison.md
+*.log
