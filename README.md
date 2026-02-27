@@ -62,14 +62,8 @@ There are many features and models still not yet implemented in this package. Th
 
 Currently, a variety of tests against the Python package are implemented to ensure similar functionality of the DoubleMLPLR, DoubleMLIRM, and DoubleMLLPLR models.
 
-In early benchmarks, the Julia implementation performs well
+In early benchmarks, the Julia implementation performs well and up to 10x faster than the Python package (see the [benchmark](test/test_python/benchmarks/benchmarks.md))
 
 ## Other packages
 
 Other similar Julia packages include [CausalELM](https://github.com/dscolby/CausalELM.jl), which offers a very lightweight approach to causal machine learning, where all the machine learners take the form of extreme learning machines. In comparison, this package aims to offer more similar features to those of the DoubleML Python package and allow flexibility of the model choice.
-
-## Index
-
-```@index
-Pages = ["api.md"]
-```

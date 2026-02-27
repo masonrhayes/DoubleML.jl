@@ -69,7 +69,9 @@ jobs:
       - uses: julia-actions/cache@v2
 
       - name: Install dependencies
-        run: julia --project=docs -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
+        run: |
+          julia --project=docs -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
+          julia --project=examples -e 'using Pkg; Pkg.instantiate()' # Add this line
 
       - name: Build and Deploy
         env:
