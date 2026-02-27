@@ -25,32 +25,16 @@
 <!--
     # This information is used for caching.
     [PlutoStaticHTML.State]
-    input_sha = "c914bf5e5f1edfbbb3db6b95b854c73dd2b4917d9b59a15147d3e8a99b237087"
+    input_sha = "7931131912ed756759e167445cc37f5a60abce6a345ed5972c76539e26a2874a"
     julia_version = "1.12.4"
 -->
-<pre class='language-julia'><code class='language-julia'>begin
-    using Pkg
-    Pkg.activate("..")
-    Pkg.resolve()
-    Pkg.instantiate()
-end</code></pre>
+<pre class='language-julia'><code class='language-julia'>import Pkg; Pkg.develop(path=joinpath(@__DIR__, "../.."))</code></pre>
 
 
-<pre class='language-julia'><code class='language-julia'>begin
-    Pkg.add("TreeParzen")
-    Pkg.add("EvoTrees")
-    Pkg.add("StableRNGs")
-end</code></pre>
+<pre class='language-julia'><code class='language-julia'>Pkg.activate(joinpath(@__DIR__, "../../examples"))</code></pre>
 
 
-<pre class='language-julia'><code class='language-julia'>begin
-    using DoubleML
-    using StableRNGs
-    using MLJ
-    using MLJDecisionTreeInterface
-    using TreeParzen
-    using EvoTrees
-end</code></pre>
+<pre class='language-julia'><code class='language-julia'>using DoubleML; using StableRNGs; using MLJ; using TreeParzen; using MLJDecisionTreeInterface; using EvoTrees</code></pre>
 
 
 <pre class='language-julia'><code class='language-julia'>begin
@@ -94,7 +78,7 @@ end</code></pre>
 <pre class="code-output documenter-example-output" id="var-ml_m">────────────────────────────────────────────────────────────────────
    Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
 ────────────────────────────────────────────────────────────────────
-d  0.495325   0.0137186    36.11    &lt;1e-99     0.468437     0.522213
+d  0.493806   0.0136729    36.12    &lt;1e-99     0.467007     0.520604
 ────────────────────────────────────────────────────────────────────</pre>
 
 
@@ -140,13 +124,13 @@ d  0.495325   0.0137186    36.11    &lt;1e-99     0.468437     0.522213
 end</code></pre>
 <pre class="code-output documenter-example-output" id="var-tuned_ml_m">DoubleMLPLR{Float32, MLJTuning.DeterministicTunedModel{MLJTreeParzenTuning, MLJDecisionTreeInterface.RandomForestRegressor, Nothing}, MLJTuning.DeterministicTunedModel{MLJTreeParzenTuning, MLJDecisionTreeInterface.RandomForestRegressor, Nothing}, Nothing}
 ==========================
-StatsBase.CoefTable(Any[[0.5058156847953796], [0.013562729582190514], [37.294532775878906], [2.0125951526746944e-304], [0.4792332232822302], [0.5323981463085291]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
+StatsBase.CoefTable(Any[[0.5018609166145325], [0.013468807563185692], [37.2609748840332], [7.037737654769499e-304], [0.4754625388759878], [0.5282592943530772]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
 
 <pre class='language-julia'><code class='language-julia'>coeftable(dml_plr)</code></pre>
 <pre class="code-output documenter-example-output" id="var-hash110135">────────────────────────────────────────────────────────────────────
    Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
 ────────────────────────────────────────────────────────────────────
-d  0.505816   0.0135627    37.29    &lt;1e-99     0.479233     0.532398
+d  0.501861   0.0134688    37.26    &lt;1e-99     0.475463     0.528259
 ────────────────────────────────────────────────────────────────────</pre>
 
 
@@ -160,7 +144,7 @@ begin
     controls = [
         Step(1),
         Patience(10),
-        NumberLimit(30)
+        NumberLimit(30),
     ]
 
     # Set up learners with iteration control and early stopping
@@ -189,13 +173,13 @@ end
 </code></pre>
 <pre class="code-output documenter-example-output" id="var-controls">DoubleMLPLR{Float32, MLJIteration.DeterministicIteratedModel{EvoTrees.EvoTreeRegressor}, MLJIteration.DeterministicIteratedModel{EvoTrees.EvoTreeRegressor}, Nothing}
 ==========================
-StatsBase.CoefTable(Any[[0.4820321500301361], [0.014262313023209572], [33.79761505126953], [2.1379053565212677e-250], [0.4540785301684087], [0.5099857698918635]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
+StatsBase.CoefTable(Any[[0.48700183629989624], [0.014193546026945114], [34.311500549316406], [5.287256313219979e-258], [0.45918299727417217], [0.5148206753256203]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
 
 <pre class='language-julia'><code class='language-julia'>coeftable(dml_plr_iterated)</code></pre>
 <pre class="code-output documenter-example-output" id="var-hash219819">────────────────────────────────────────────────────────────────────
    Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
 ────────────────────────────────────────────────────────────────────
-d  0.482032   0.0142623    33.80    &lt;1e-99     0.454079     0.509986
+d  0.487002   0.0141935    34.31    &lt;1e-99     0.459183     0.514821
 ────────────────────────────────────────────────────────────────────</pre>
 
 <pre class='language-julia'><code class='language-julia'>summary(dml_plr_iterated)</code></pre>

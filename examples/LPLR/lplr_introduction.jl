@@ -5,12 +5,10 @@ using Markdown
 using InteractiveUtils
 
 # ╔═╡ 8ddab706-13ec-11f1-86d9-cf1e4a214f61
-begin
-    using Pkg
-    Pkg.activate("..")
-    Pkg.resolve()
-    Pkg.instantiate()
-end
+import Pkg; Pkg.develop(path=joinpath(@__DIR__, "../.."))
+
+# ╔═╡ 75220018-ab41-41f5-a1e7-f2186195ec5f
+Pkg.activate(joinpath(@__DIR__, "../../examples"))
 
 # ╔═╡ 5a072569-e9a6-4634-bec5-00b751791c7d
 begin
@@ -132,6 +130,7 @@ coeftable(dml_lplr_iterated)
 
 # ╔═╡ Cell order:
 # ╠═8ddab706-13ec-11f1-86d9-cf1e4a214f61
+# ╠═75220018-ab41-41f5-a1e7-f2186195ec5f
 # ╠═5a072569-e9a6-4634-bec5-00b751791c7d
 # ╠═dd0872f0-affc-4718-b5ab-7f8387f237c2
 # ╟─2256cb84-ad2b-48af-beea-a50dce7fdcf4

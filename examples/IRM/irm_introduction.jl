@@ -6,12 +6,13 @@ using InteractiveUtils
 
 # ╔═╡ a1b2c3d4-e5f6-7890-abcd-ef1234567890
 begin
-    using Pkg
-    Pkg.activate("..")
-    Pkg.instantiate()
+    import Pkg; Pkg.develop(path=joinpath(@__DIR__, "../.."))
 end
 
 # ╔═╡ c3d4e5f6-a7b8-9012-cdef-345678901234
+Pkg.activate(joinpath(@__DIR__, "../../examples"))
+
+# ╔═╡ 0a9939fa-ff7a-466d-b1a0-9077bdfe41b2
 begin
     using DoubleML
     using StableRNGs
@@ -100,6 +101,7 @@ coeftable(dml_irm)
 # ╔═╡ Cell order:
 # ╠═a1b2c3d4-e5f6-7890-abcd-ef1234567890
 # ╠═c3d4e5f6-a7b8-9012-cdef-345678901234
+# ╠═0a9939fa-ff7a-466d-b1a0-9077bdfe41b2
 # ╠═d4e5f6a7-b8c9-0123-defa-456789012345
 # ╠═e5f6a7b8-c9d0-1234-efab-567890123456
 # ╠═f6a7b8c9-d0e1-2345-fabc-678901234567
