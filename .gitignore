@@ -1,3 +1,4 @@
 /.planning
 */.ignore
 .theme
+/bin 

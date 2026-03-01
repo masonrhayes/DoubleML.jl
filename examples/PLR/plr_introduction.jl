@@ -4,30 +4,14 @@
 using Markdown
 using InteractiveUtils
 
-# ╔═╡ a1b2c3d4-e5f6-7890-abcd-ef1234567890
-begin
-    using Pkg
-    Pkg.activate("..")
-    Pkg.resolve()
-    Pkg.instantiate()
-end
+# ╔═╡ 66862f5f-b882-4344-96fd-56c6b5373e68
+import Pkg; Pkg.develop(path=joinpath(@__DIR__, "../.."))
+
+# ╔═╡ aedf55f4-51b3-4b85-b169-4524b241086d
+Pkg.activate(joinpath(@__DIR__, "../../examples"))
 
 # ╔═╡ 563e2e19-68b7-432f-93f4-b0ad015f8b33
-begin
-    Pkg.add("TreeParzen")
-    Pkg.add("EvoTrees")
-    Pkg.add("StableRNGs")
-end
-
-# ╔═╡ c3d4e5f6-a7b8-9012-cdef-345678901234
-begin
-    using DoubleML
-    using StableRNGs
-    using MLJ
-    using MLJDecisionTreeInterface
-    using TreeParzen
-    using EvoTrees
-end
+using DoubleML; using StableRNGs; using MLJ; using TreeParzen; using MLJDecisionTreeInterface; using EvoTrees
 
 # ╔═╡ d4e5f6a7-b8c9-0123-defa-456789012345
 begin
@@ -155,9 +139,9 @@ coeftable(dml_plr_iterated)
 summary(dml_plr_iterated)
 
 # ╔═╡ Cell order:
-# ╠═a1b2c3d4-e5f6-7890-abcd-ef1234567890
+# ╠═66862f5f-b882-4344-96fd-56c6b5373e68
+# ╠═aedf55f4-51b3-4b85-b169-4524b241086d
 # ╠═563e2e19-68b7-432f-93f4-b0ad015f8b33
-# ╠═c3d4e5f6-a7b8-9012-cdef-345678901234
 # ╠═d4e5f6a7-b8c9-0123-defa-456789012345
 # ╠═e5f6a7b8-c9d0-1234-efab-567890123456
 # ╠═f6a7b8c9-d0e1-2345-fabc-678901234567

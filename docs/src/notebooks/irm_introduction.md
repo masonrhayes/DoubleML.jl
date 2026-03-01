@@ -25,14 +25,15 @@
 <!--
     # This information is used for caching.
     [PlutoStaticHTML.State]
-    input_sha = "7bd830a3473d17a6cf11e7e59a67a38ef8bc07443c8e514b1512939325a84087"
+    input_sha = "28053b176c99ae50ce44d8973ba9ab3301e74bdddd0bfdde0d45df0bc5a2af05"
     julia_version = "1.12.4"
 -->
 <pre class='language-julia'><code class='language-julia'>begin
-    using Pkg
-    Pkg.activate("..")
-    Pkg.instantiate()
+    import Pkg; Pkg.develop(path=joinpath(@__DIR__, "../.."))
 end</code></pre>
+
+
+<pre class='language-julia'><code class='language-julia'>Pkg.activate(joinpath(@__DIR__, "../../examples"))</code></pre>
 
 
 <pre class='language-julia'><code class='language-julia'>begin
@@ -108,7 +109,7 @@ end</code></pre>
 <pre class="code-output documenter-example-output" id="var-dml_irm_simple">────────────────────────────────────────────────────────────────────
    Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
 ────────────────────────────────────────────────────────────────────
-d   0.67957   0.0189615    35.84    &lt;1e-99     0.642406     0.716733
+d  0.674031   0.0183706    36.69    &lt;1e-99     0.638025     0.710037
 ────────────────────────────────────────────────────────────────────</pre>
 
 <pre class='language-julia'><code class='language-julia'>begin
@@ -117,7 +118,7 @@ d   0.67957   0.0189615    35.84    &lt;1e-99     0.642406     0.716733
     space = Dict(
         :max_depth =&gt; HP.QuantUniform(:max_depth, 2.0, 12.0, 1.0)
     )
-    
+
     tuned_ml_g = TunedModel(
         model = EvoTreeRegressor(),
         tuning = MLJTreeParzenTuning(random_trials = 75, draws = 50),
@@ -144,13 +145,13 @@ d   0.67957   0.0189615    35.84    &lt;1e-99     0.642406     0.716733
 end</code></pre>
 <pre class="code-output documenter-example-output" id="var-tuned_ml_m">DoubleMLIRM{Float32, MLJTuning.DeterministicTunedModel{MLJTreeParzenTuning, EvoTrees.EvoTreeRegressor, Nothing}, MLJTuning.ProbabilisticTunedModel{MLJTreeParzenTuning, EvoTrees.EvoTreeClassifier, Nothing}}
 ==========================
-StatsBase.CoefTable(Any[[0.5067636370658875], [0.020287886261940002], [24.9786319732666], [1.0436473597475374e-137], [0.46700011067004005], [0.5465271634617349]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
+StatsBase.CoefTable(Any[[0.5573905110359192], [0.04278203845024109], [13.028610229492188], [8.412598772482777e-39], [0.4735392564882387], [0.6412417655835997]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
 
 <pre class='language-julia'><code class='language-julia'>coeftable(dml_irm)</code></pre>
 <pre class="code-output documenter-example-output" id="var-hash997185">────────────────────────────────────────────────────────────────────
    Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
 ────────────────────────────────────────────────────────────────────
-d  0.506764   0.0202879    24.98    &lt;1e-99        0.467     0.546527
+d  0.557391    0.042782    13.03    &lt;1e-38     0.473539     0.641242
 ────────────────────────────────────────────────────────────────────</pre>
 
 <!-- PlutoStaticHTML.End -->

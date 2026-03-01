@@ -1,6 +1,7 @@
 [deps]
 DoubleML = "77251493-8087-46d5-be33-49d84ce818f6"
 EvoTrees = "f6006082-12f8-11e9-0c9c-0d5d367ab1e5"
+MLJ = "add582a8-e3ab-11e8-2d5e-e98b27df1bc7"
 MLJDecisionTreeInterface = "c6f25543-311c-4c74-83dc-3ea6d1015661"
 MLJXGBoostInterface = "54119dfa-1dab-4055-a167-80440f4f7a91"
 Pluto = "c3e4b0f8-55cb-11ea-2926-15256bba5781"

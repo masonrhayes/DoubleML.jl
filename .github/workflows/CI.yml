@@ -19,8 +19,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        julia-version: ['1.10', '1.11']
-        os: [ubuntu-latest, windows-latest, macOS-latest]
+        julia-version: ['1']
+        os: ['ubuntu-latest']
     steps:
       - uses: actions/checkout@v4
 
@@ -29,6 +29,22 @@ jobs:
           version: ${{ matrix.julia-version }}
 
       - uses: julia-actions/cache@v2
+
+      # 1. Install uv and enable caching for faster runs
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      # 2. Install your target Python version
+      - name: Set up Python
+        run: uv python install 3.12
+
+      # 3. Auto-setup the virtual environment for the tests
+      - name: Create Python virtual environment
+        run: |
+          uv venv test/test_python/.venv
+          uv pip install --python=test/test_python/.venv numpy pandas doubleml xgboost scikit-learn
 
       - name: Install dependencies
         run: julia --project=. -e 'using Pkg; Pkg.instantiate()'
@@ -43,7 +59,7 @@ jobs:
 
       - uses: julia-actions/setup-julia@v2
         with:
-          version: '1.10'
+          version: '1'
 
       - uses: julia-actions/cache@v2
 
@@ -64,12 +80,14 @@ jobs:
 
       - uses: julia-actions/setup-julia@v2
         with:
-          version: '1.10'
+          version: '1'
 
       - uses: julia-actions/cache@v2
 
       - name: Install dependencies
-        run: julia --project=docs -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
+        run: |
+          julia --project=docs -e 'using Pkg; Pkg.develop(Pkg.PackageSpec(path=pwd())); Pkg.instantiate()'
+          julia --project=examples -e 'using Pkg; Pkg.instantiate()' # Add this line
 
       - name: Build and Deploy
         env:

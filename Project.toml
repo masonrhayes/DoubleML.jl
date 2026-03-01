@@ -23,8 +23,8 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 StatsFuns = "4c63d2b9-4356-54db-8cca-17b64c39e42c"
 
 [compat]
-CategoricalArrays = "1.0.2"
-MLJBase = "1.12.1"
+CategoricalArrays = "1.0"
+MLJBase = "1.12"
 PrettyTables = "3.2.3"
 Roots = "2.2.12"
 ScientificTypes = "3.2.0"
