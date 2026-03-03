@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>LPLR Introduction · DoubleML.jl</title><meta name="title" content="LPLR Introduction · DoubleML.jl"/><meta property="og:title" content="LPLR Introduction · DoubleML.jl"/><meta property="twitter:title" content="LPLR Introduction · DoubleML.jl"/><meta name="description" content="Documentation for DoubleML.jl."/><meta property="og:description" content="Documentation for DoubleML.jl."/><meta property="twitter:description" content="Documentation for DoubleML.jl."/><meta property="og:url" content="https://masonrhayes.github.io/DoubleML.jl/notebooks/lplr_introduction/"/><meta property="twitter:url" content="https://masonrhayes.github.io/DoubleML.jl/notebooks/lplr_introduction/"/><link rel="canonical" href="https://masonrhayes.github.io/DoubleML.jl/notebooks/lplr_introduction/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">DoubleML.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../user-guide/">User Guide</a></li><li><span class="tocitem">Tutorials</span><ul><li><a class="tocitem" href="../../tutorials/plr/">PLR</a></li><li><a class="tocitem" href="../../tutorials/irm/">IRM</a></li><li><a class="tocitem" href="../../tutorials/lplr/">LPLR</a></li></ul></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../../examples/">Overview</a></li><li><a class="tocitem" href="../plr_introduction/">PLR Introduction</a></li><li class="is-active"><a class="tocitem" href>LPLR Introduction</a></li><li><a class="tocitem" href="../irm_introduction/">IRM Introduction</a></li></ul></li><li><a class="tocitem" href="../../api/">API Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>LPLR Introduction</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>LPLR Introduction</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/masonrhayes/DoubleML.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/masonrhayes/DoubleML.jl/blob/main/nothing" title="View source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><style>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>LPLR Introduction · DoubleML.jl</title><meta name="title" content="LPLR Introduction · DoubleML.jl"/><meta property="og:title" content="LPLR Introduction · DoubleML.jl"/><meta property="twitter:title" content="LPLR Introduction · DoubleML.jl"/><meta name="description" content="Documentation for DoubleML.jl."/><meta property="og:description" content="Documentation for DoubleML.jl."/><meta property="twitter:description" content="Documentation for DoubleML.jl."/><meta property="og:url" content="https://masonrhayes.github.io/DoubleML.jl/notebooks/lplr_introduction/"/><meta property="twitter:url" content="https://masonrhayes.github.io/DoubleML.jl/notebooks/lplr_introduction/"/><link rel="canonical" href="https://masonrhayes.github.io/DoubleML.jl/notebooks/lplr_introduction/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">DoubleML.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../user-guide/">User Guide</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../../examples/">Overview</a></li><li><a class="tocitem" href="../plr_introduction/">PLR Introduction</a></li><li class="is-active"><a class="tocitem" href>LPLR Introduction</a></li><li><a class="tocitem" href="../irm_introduction/">IRM Introduction</a></li></ul></li><li><a class="tocitem" href="../../api/">API Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>LPLR Introduction</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>LPLR Introduction</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/masonrhayes/DoubleML.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/masonrhayes/DoubleML.jl/blob/main/nothing" title="View source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><style>
     #documenter-page table {
         display: table !important;
         margin: 2rem auto !important;
@@ -25,14 +25,20 @@
 <!--
     # This information is used for caching.
     [PlutoStaticHTML.State]
-    input_sha = "608f5ab3ff7f9c3c1e0165b0fe879290984a7cff3fbc7bccfa761a3811b5dbb4"
+    input_sha = "ca9e4eff3637e7fcf6a64d3e280227ee6a8d5d05040871e85e09fb074de899e9"
     julia_version = "1.12.5"
 -->
-<pre class='language-julia'><code class='language-julia'>import Pkg; Pkg.develop(path=joinpath(@__DIR__, "../.."))</code></pre>
 
 
-<pre class='language-julia'><code class='language-julia'>Pkg.activate(joinpath(@__DIR__, "../../examples"))</code></pre>
 
+
+
+
+
+<div class="markdown"><h1 id="Logistic-Partially-Linear-Regression-(LPLR)-Tutorial">Logistic Partially Linear Regression (LPLR) Tutorial</h1><p>⚠️ <strong>Experimental Model</strong>: This model is still under development.</p><h2 id="Overview">Overview</h2><p>The LPLR model estimates treatment effects with <strong>binary outcomes</strong> (<span class="tex">\(Y \in \{0,1\}\)</span>):</p><p class="tex">$$E[Y|D,X] = \text{expit}(\beta_0 D + r_0(X))$$</p><p>Where:</p><ul><li><p><span class="tex">\(Y \in \{0, 1\}\)</span> is the binary outcome</p></li><li><p><span class="tex">\(D\)</span> is the treatment (continuous or binary)</p></li><li><p><span class="tex">\(X\)</span> are control variables (covariates)</p></li><li><p><span class="tex">\(\beta_0\)</span> is the treatment effect on the log-odds scale</p></li><li><p><span class="tex">\(r_0(X)\)</span> is the nuisance function (conditional log-odds)</p></li></ul><p>The treatment effect <span class="tex">\(\beta_0\)</span> represents the change in log-odds of the outcome per unit change in treatment.</p></div>
+
+
+<div class="markdown"><h2 id="Load-packages-and-import-ML-models">Load packages and import ML models</h2></div>
 
 <pre class='language-julia'><code class='language-julia'>begin
     using DoubleML
@@ -81,12 +87,12 @@ end</code></pre>
  (name = SRRegressor, package_name = SymbolicRegression, ... )</pre>
 
 <pre class='language-julia'><code class='language-julia'>begin
-    # Find matching models for y
+    # Find matching models for d
     models() do model
         matching(model, data_lplr.x, data_lplr.d)
     end
 end</code></pre>
-<pre class="code-output documenter-example-output" id="var-hash261476">11-element Vector{NamedTuple{(:name, :package_name, :is_supervised, :abstract_type, :constructor, :deep_properties, :docstring, :fit_data_scitype, :human_name, :hyperparameter_ranges, :hyperparameter_types, :hyperparameters, :implemented_methods, :inverse_transform_scitype, :is_pure_julia, :is_wrapper, :iteration_parameter, :load_path, :package_license, :package_url, :package_uuid, :predict_scitype, :prediction_type, :reporting_operations, :reports_feature_importances, :supports_class_weights, :supports_online, :supports_training_losses, :supports_weights, :tags, :target_in_fit, :transform_scitype, :input_scitype, :target_scitype, :output_scitype)}}:
+<pre class="code-output documenter-example-output" id="var-hash120331">11-element Vector{NamedTuple{(:name, :package_name, :is_supervised, :abstract_type, :constructor, :deep_properties, :docstring, :fit_data_scitype, :human_name, :hyperparameter_ranges, :hyperparameter_types, :hyperparameters, :implemented_methods, :inverse_transform_scitype, :is_pure_julia, :is_wrapper, :iteration_parameter, :load_path, :package_license, :package_url, :package_uuid, :predict_scitype, :prediction_type, :reporting_operations, :reports_feature_importances, :supports_class_weights, :supports_online, :supports_training_losses, :supports_weights, :tags, :target_in_fit, :transform_scitype, :input_scitype, :target_scitype, :output_scitype)}}:
  (name = CatBoostRegressor, package_name = CatBoost, ... )
  (name = DecisionTreeRegressor, package_name = BetaML, ... )
  (name = EvoTreeGaussian, package_name = EvoTrees, ... )
@@ -103,10 +109,10 @@ end</code></pre>
 <div class="markdown"><h2 id="Estimate-a-simple-model">Estimate a simple model</h2></div>
 
 <pre class='language-julia'><code class='language-julia'>begin
-    # Simple IRM with RandomForest
-    ml_M = RandomForestClassifier()
-    ml_t = RandomForestRegressor()
-    ml_m = RandomForestRegressor()
+    # Simple LPLR with RandomForest
+    ml_M = RandomForestClassifier(rng = StableRNG(42))
+    ml_t = RandomForestRegressor(rng = StableRNG(42))
+    ml_m = RandomForestRegressor(rng = StableRNG(42))
 
     dml_lplr_simple = DoubleML.DoubleMLLPLR(data_lplr, ml_M, ml_t, ml_m, score = :nuisance_space)
 
@@ -115,13 +121,13 @@ end</code></pre>
 end</code></pre>
 <pre class="code-output documenter-example-output" id="var-ml_t">DoubleMLLPLR{Float32, MLJDecisionTreeInterface.RandomForestClassifier, MLJDecisionTreeInterface.RandomForestRegressor, MLJDecisionTreeInterface.RandomForestRegressor, MLJDecisionTreeInterface.RandomForestRegressor}
 ==========================
-StatsBase.CoefTable(Any[[0.584820032119751], [0.07702767848968506], [7.592336177825928], [3.141885843194981e-14], [0.43384855646723736], [0.7357915077722645]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
+StatsBase.CoefTable(Any[[0.5434647798538208], [0.07496866583824158], [7.249225616455078], [4.191611699327778e-13], [0.3965288948418487], [0.6904006648657929]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
 
 <pre class='language-julia'><code class='language-julia'>coeftable(dml_lplr_simple)</code></pre>
 <pre class="code-output documenter-example-output" id="var-hash360715">────────────────────────────────────────────────────────────────────
    Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
 ────────────────────────────────────────────────────────────────────
-d   0.58482   0.0770277     7.59    &lt;1e-13     0.433849     0.735792
+d  0.543465   0.0749687     7.25    &lt;1e-12     0.396529     0.690401
 ────────────────────────────────────────────────────────────────────</pre>
 
 
@@ -131,12 +137,12 @@ d   0.58482   0.0770277     7.59    &lt;1e-13     0.433849     0.735792
     # Set up iteration controls
     controls = [
         Step(1),
-        Patience(10),
-        NumberLimit(20),
+        Patience(6),
+        NumberLimit(25),
     ]
 
     ml_M_iterated = IteratedModel(
-        EvoTreeClassifier(max_depth = 4, eta = 0.05),
+        EvoTreeClassifier(max_depth = 4, eta = 0.01, seed = 42),
         resampling = Holdout(),
         measure = cross_entropy,
         iteration_parameter = :nrounds,
@@ -144,7 +150,7 @@ d   0.58482   0.0770277     7.59    &lt;1e-13     0.433849     0.735792
     )
 
     ml_t_iterated = IteratedModel(
-        EvoTreeRegressor(max_depth = 4, eta = 0.05),
+        EvoTreeRegressor(max_depth = 4, eta = 0.01, seed = 42),
         resampling = Holdout(),
         measure = mav,
         iteration_parameter = :nrounds,
@@ -152,7 +158,7 @@ d   0.58482   0.0770277     7.59    &lt;1e-13     0.433849     0.735792
     )
 
     ml_m_iterated = IteratedModel(
-        EvoTreeRegressor(max_depth = 4, eta = 0.05),
+        EvoTreeRegressor(max_depth = 4, eta = 0.01, seed = 42),
         resampling = Holdout(),
         measure = mae,
         iteration_parameter = :nrounds,
@@ -169,13 +175,13 @@ d   0.58482   0.0770277     7.59    &lt;1e-13     0.433849     0.735792
 end</code></pre>
 <pre class="code-output documenter-example-output" id="var-controls">DoubleMLLPLR{Float32, MLJIteration.ProbabilisticIteratedModel{EvoTrees.EvoTreeClassifier}, MLJIteration.DeterministicIteratedModel{EvoTrees.EvoTreeRegressor}, MLJIteration.DeterministicIteratedModel{EvoTrees.EvoTreeRegressor}, MLJIteration.DeterministicIteratedModel{EvoTrees.EvoTreeRegressor}}
 ==========================
-StatsBase.CoefTable(Any[[0.5471603870391846], [0.07769156992435455], [7.042725563049316], [1.885153053902972e-12], [0.3948877080850741], [0.699433065993295]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
+StatsBase.CoefTable(Any[[0.5134763121604919], [0.06786470860242844], [7.566175937652588], [3.843713883655877e-14], [0.3804639274784264], [0.6464886968425575]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
 
 <pre class='language-julia'><code class='language-julia'>coeftable(dml_lplr_iterated)</code></pre>
 <pre class="code-output documenter-example-output" id="var-hash950978">────────────────────────────────────────────────────────────────────
    Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
 ────────────────────────────────────────────────────────────────────
-d   0.54716   0.0776916     7.04    &lt;1e-11     0.394888     0.699433
+d  0.513476   0.0678647     7.57    &lt;1e-13     0.380464     0.646489
 ────────────────────────────────────────────────────────────────────</pre>
 
-<!-- PlutoStaticHTML.End --></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../plr_introduction/">« PLR Introduction</a><a class="docs-footer-nextpage" href="../irm_introduction/">IRM Introduction »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Sunday 1 March 2026 18:16">Sunday 1 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+<!-- PlutoStaticHTML.End --></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../plr_introduction/">« PLR Introduction</a><a class="docs-footer-nextpage" href="../irm_introduction/">IRM Introduction »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Tuesday 3 March 2026 21:53">Tuesday 3 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
