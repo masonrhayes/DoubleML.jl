@@ -2,7 +2,7 @@
 DoubleMLPLR: Partially Linear Regression model.
 
 Implements Double/Debiased Machine Learning for the partially linear model:
-Y = θ·D + g(X) + ε
+Y = ``\\theta``·D + g(X) + ε
 """
 
 """
@@ -15,7 +15,7 @@ Create a DoubleML PLR model.
 - `data::DoubleMLData{T}`: Data container (T inferred from data)
 - `ml_l`: Model for l(X) = E[Y|X] (must be Deterministic regressor)
 - `ml_m`: Model for m(X) = E[D|X] (regressor or classifier)
-- `ml_g=nothing`: Model for g(X) = E[Y - D·θ|X] (required for IV-type)
+- `ml_g=nothing`: Model for g(X) = ``E[Y - D \\theta|X]`` (required for IV-type)
 - `n_folds::Int=5`: Number of cross-fitting folds
 - `n_rep::Int=1`: Number of sample splitting repetitions
 - `score::Symbol=:partialling_out`: Score type (:partialling_out or :IV_type)
@@ -55,7 +55,7 @@ function DoubleMLPLR(
         throw(
             ArgumentError(
                 "score=:IV_type requires ml_g learner. " *
-                    "Provide ml_g for estimating g(X) = E[Y - D·θ|X]"
+                    "Provide ml_g for estimating g(X) = E[Y - D·``\\theta``|X]"
             )
         )
     end
@@ -126,21 +126,24 @@ function MLJ.fit!(
     Y = obj.data.y
     D = obj.data.d
 
+    # Pre-coerce treatment variable for ml_m to avoid per-fold coercion overhead
+    D_coerced = coerce_target(D, obj.ml_m)
+
     obj.fitted_learners_l = MLJ.Machine[]
     obj.fitted_learners_m = MLJ.Machine[]
     obj.fitted_learners_g = MLJ.Machine[]
 
     if obj.score_obj isa PartiallingOutScore
-        _fit_partialling_out!(obj, X, Y, D, all_smpls, n_obs, verbose)
+        _fit_partialling_out!(obj, X, Y, D, D_coerced, all_smpls, n_obs, verbose)
     else
-        _fit_iv_type!(obj, X, Y, D, all_smpls, n_obs, verbose, max_iter, tol)
+        _fit_iv_type!(obj, X, Y, D, D_coerced, all_smpls, n_obs, verbose, max_iter, tol)
     end
 
     return obj
 end
 
 function _fit_partialling_out!(
-        obj::DoubleMLPLR{T}, X, Y, D, all_smpls, n_obs, verbose
+        obj::DoubleMLPLR{T}, X, Y, D, D_coerced, all_smpls, n_obs, verbose
     ) where {T}
     ml_l = obj.ml_l
     ml_m = obj.ml_m
@@ -177,19 +180,18 @@ function _fit_partialling_out!(
         psi_a_rep = zeros(T, n_obs)
         psi_b_rep = zeros(T, n_obs)
 
-        for (train_idx, test_idx) in smpls
+        @views for (train_idx, test_idx) in smpls
             X_train = X[train_idx, :]
             X_test = X[test_idx, :]
             Y_train = Y[train_idx]
-            D_train = D[train_idx]
 
             mach_l = machine(rep_ml_l, X_train, Y_train)
             MLJ.fit!(mach_l, verbosity = verbose)
             push!(obj.fitted_learners_l, mach_l)
             l_hat, l_pred_raw = predict_nuisance(mach_l, X_test, "l(X)")
 
-            D_train_coerced = coerce_target(D_train, rep_ml_m)
-            mach_m = machine(rep_ml_m, X_train, D_train_coerced)
+            D_train = D_coerced[train_idx]
+            mach_m = machine(rep_ml_m, X_train, D_train)
             MLJ.fit!(mach_m, verbosity = verbose)
             push!(obj.fitted_learners_m, mach_m)
             m_hat, m_pred_raw = predict_nuisance(mach_m, X_test, "m(X)")
@@ -241,7 +243,7 @@ function _fit_partialling_out!(
 end
 
 function _fit_iv_type!(
-        obj::DoubleMLPLR{T}, X, Y, D, all_smpls, n_obs, verbose, max_iter, tol
+        obj::DoubleMLPLR{T}, X, Y, D, D_coerced, all_smpls, n_obs, verbose, max_iter, tol
     ) where {T}
     ml_l = obj.ml_l
     ml_m = obj.ml_m
@@ -278,18 +280,17 @@ function _fit_iv_type!(
         psi_a_temp = zeros(T, n_obs)
         psi_b_temp = zeros(T, n_obs)
 
-        for (train_idx, test_idx) in smpls
+        @views for (train_idx, test_idx) in smpls
             X_train = X[train_idx, :]
             X_test = X[test_idx, :]
             Y_train = Y[train_idx]
-            D_train = D[train_idx]
 
             mach_l = machine(rep_ml_l, X_train, Y_train)
             MLJ.fit!(mach_l, verbosity = verbose)
             l_hat, l_pred_raw = predict_nuisance(mach_l, X_test, "l(X)")
 
-            D_train_coerced = coerce_target(D_train, rep_ml_m)
-            mach_m = machine(rep_ml_m, X_train, D_train_coerced)
+            D_train = D_coerced[train_idx]
+            mach_m = machine(rep_ml_m, X_train, D_train)
             MLJ.fit!(mach_m, verbosity = verbose)
             m_hat, m_pred_raw = predict_nuisance(mach_m, X_test, "m(X)")
 
@@ -311,14 +312,13 @@ function _fit_iv_type!(
             psi_a_fold = zeros(T, n_obs)
             psi_b_fold = zeros(T, n_obs)
 
-            for (train_idx, test_idx) in smpls
+            @views for (train_idx, test_idx) in smpls
                 X_train = X[train_idx, :]
                 X_test = X[test_idx, :]
                 Y_train = Y[train_idx]
-                D_train = D[train_idx]
 
-                D_train_coerced = coerce_target(D_train, rep_ml_m)
-                mach_m = machine(rep_ml_m, X_train, D_train_coerced)
+                D_train = D_coerced[train_idx]
+                mach_m = machine(rep_ml_m, X_train, D_train)
                 MLJ.fit!(mach_m, verbosity = verbose)
                 m_hat, m_pred_raw = predict_nuisance(mach_m, X_test, "m(X)")
 

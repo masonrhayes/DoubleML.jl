@@ -33,24 +33,13 @@ get_score_name(::ATEScore) = :ATE
 get_score_name(::ATTEScore) = :ATTE
 
 """
-    compute_score(score::AbstractScore, args...) -> Tuple{Vector{T}, Vector{T}}
-
-Compute score components (psi_a, psi_b) for DML2 estimation.
-
-The score function is linear in θ: ψ(W; θ, η) = ψ_a · θ + ψ_b
-
-The DML2 estimator solves: θ̂ = -E[ψ_b] / E[ψ_a]
-"""
-function compute_score end
-
-"""
     compute_score(::PartiallingOutScore, Y_test, D_test, l_hat, m_hat)
 
 Compute partialling out score components.
 
 # Returns
-- `psi_a = -(D - m̂)^2`
-- `psi_b = (Y - l̂) · (D - m̂)`
+- ``\\psi_{a} = -(D - \\hat{m})^2``
+- ``\\psi_{b} = (Y - \\hat{l}) \\cdot (D - \\hat{m})``
 """
 function compute_score(
         ::PartiallingOutScore,
@@ -80,8 +69,8 @@ end
 Compute IV-type score components.
 
 # Returns
-- `psi_a = -(D - m̂) · D`
-- `psi_b = (Y - ĝ) · (D - m̂)`
+- ``\\psi_{a} = -(D - \\hat{m}) \\cdot D``
+- ``\\psi_{b} = (Y - \\hat{g}) \\cdot (D - \\hat{m})``
 """
 function compute_score(
         ::IVTypeScore,
@@ -112,7 +101,7 @@ Compute ATE score components using doubly robust AIPW estimator.
 
 # Returns
 - `psi_a = -1` (constant)
-- `psi_b = τ̂(X) + IPW_correction`
+- `psi_b = ``\\hat{\\tau}(X)`` + IPW_correction
 """
 function compute_score(
         ::ATEScore,
@@ -147,7 +136,7 @@ Compute ATTE score components focusing on treated population.
 
 # Returns
 - `psi_a = -D / E[D]`
-- `psi_b = (D/E[D])·τ̂ + (m̂/E[D])·IPW_correction`
+- `psi_b = (D/E[D])·``\\hat{\\tau}`` + (``\\hat{m}``/E[D])·IPW_correction`
 """
 function compute_score(
         ::ATTEScore,
@@ -185,7 +174,7 @@ end
 """
     dml2_solve(psi_a::AbstractVector, psi_b::AbstractVector)
 
-Solve for θ using DML2 estimator: θ̂ = -mean(psi_b) / mean(psi_a)
+Solve for ``\\theta`` using DML2 estimator: ``\\hat{\\theta}`` = -mean(psi_b) / mean(psi_a)
 """
 function dml2_solve(psi_a::AbstractVector, psi_b::AbstractVector)
     return -mean(psi_b) / mean(psi_a)
@@ -196,8 +185,8 @@ end
 
 Score function for LPLR using nuisance space estimation.
 
-Computes: ψ(W, β, η) = ψ(X){Ye^(βD) - (1-Y)e^(r₀(X))}{D - m₀(X)}
-where ψ(X) = expit(-r₀(X))
+Computes: ``\\psi(W, \\beta, \\eta) = \\psi(X){Ye^{(\\beta D)} - (1-Y)e^{(r_0(X))}}{D - m_0(X)}``
+where ``\\psi(X) = \text{expit}(-r_0(X))``
 
 # References
 - Liu et al. (2021): Double/debiased machine learning for logistic partially linear models
@@ -209,7 +198,7 @@ struct NuisanceSpaceScore <: AbstractScore end
 
 Score function for LPLR using instrument approach.
 
-Computes: ψ(W; β, η) = {Y - expit(β₀D + r₀(X))}(D - m(X))
+Computes: ``\\psi(W; \\beta, \\eta) = {Y - \\text{expit}(\\beta_0 D + r_0(X))}(D - m(X))``
 
 # References
 - Liu et al. (2021): Double/debiased machine learning for logistic partially linear models
@@ -294,7 +283,7 @@ end
 
 Compute score value for given coefficient using dynamic r_hat computation.
 
-Score: ψ = ψ_hat * (Y * exp(-coef * D) * d_tilde - score_const)
+Score: ``\\psi = \\hat{\\psi} \\cdot (Y \\cdot \\exp(-\\text{coef} \\cdot D) \\cdot d\\_\\text{tilde} - \\text{score\\_const})``
 where r_hat = t_hat - coef * a_hat (computed dynamically)
 """
 function compute_score(
@@ -319,7 +308,7 @@ end
 
 Compute score value for given coefficient using dynamic r_hat computation.
 
-Score: ψ = (Y - expit(coef * D + r_hat)) * d_tilde
+Score: ``\\psi = (Y - \\text{expit}(\\text{coef} \\cdot D + r\\_\\text{hat})) \\cdot d\\_\\text{tilde}``
 where r_hat = t_hat - coef * a_hat (computed dynamically)
 """
 function compute_score(

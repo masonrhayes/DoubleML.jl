@@ -56,7 +56,7 @@ abstract type AbstractDoubleML{T <: AbstractFloat} <: StatsAPI.StatisticalModel 
 
 Score function for partialling out in Partially Linear Regression.
 
-The score is: ψ(W; θ, η) = (Y - l(X) - θ(D - m(X))) · (D - m(X))
+The score is: ``\\psi(W; \\theta, \\eta) = (Y - l(X) - \\theta(D - m(X))) \\cdot (D - m(X))``
 """
 struct PartiallingOutScore <: AbstractScore end
 
@@ -65,7 +65,7 @@ struct PartiallingOutScore <: AbstractScore end
 
 IV-type score for Partially Linear Regression.
 
-The score is: ψ(W; θ, η) = (Y - g(X) - θ·D) · (D - m(X))
+The score is: ``\\psi(W; \\theta, \\eta) = (Y - g(X) - \\theta \\cdot D) \\cdot (D - m(X))``
 """
 struct IVTypeScore <: AbstractScore end
 
@@ -92,7 +92,7 @@ struct ATTEScore <: AbstractScore end
 
 Double Machine Learning for Partially Linear Regression models.
 
-Implements: Y = θ·D + g(X) + ε
+Implements: Y = ``\\theta``·D + g(X) + ε
 
 # Type Parameters
 - `T<:AbstractFloat`: Numeric type (inferred from data)
@@ -104,7 +104,7 @@ Implements: Y = θ·D + g(X) + ε
 - `data::DoubleMLData{T}`: Data container
 - `ml_l::L`: Model for l(X) = E[Y|X]
 - `ml_m::M`: Model for m(X) = E[D|X]
-- `ml_g::G`: Model for g(X) = E[Y - D·θ|X] (IV-type only)
+- `ml_g::G`: Model for g(X) = E[Y - D·``\\theta``|X] (IV-type only)
 - `n_folds::Int`: Number of cross-fitting folds
 - `n_rep::Int`: Number of sample splitting repetitions
 - `score_obj::AbstractScore`: Score function type
@@ -161,7 +161,7 @@ end
 
 Double Machine Learning for Interactive Regression Models.
 
-Implements: Y = g_0(D, X) + ζ, where D is binary.
+Implements: Y = g_0(D, X) + ``\\zeta``, where D is binary.
 
 # Type Parameters
 - `T<:AbstractFloat`: Numeric type (inferred from data)
@@ -232,7 +232,7 @@ end
 
 Double Machine Learning for Logistic Partially Linear Regression.
 
-Implements: E[Y | D, X] = expit{β₀D + r₀(X)} where Y ∈ {0, 1}
+Implements: E[Y | D, X] = expit{β_0·D + r_0(X)} where Y ∈ {0, 1}
 
 # Type Parameters
 - `T<:AbstractFloat`: Numeric type (inferred from data)

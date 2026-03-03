@@ -153,8 +153,8 @@ end
 Compute out-of-sample performance using MLJ measures.
 
 Uses multiple dispatch to select appropriate metric:
-- Deterministic models → `rmse` (root mean squared error)
-- Probabilistic models → `log_loss` (logarithmic loss)
+- Deterministic models ``\\rightarrow`` `rmse` (root mean squared error)
+- Probabilistic models ``\\rightarrow`` `log_loss` (logarithmic loss)
 
 # Arguments
 - `mach`: Fitted MLJ machine

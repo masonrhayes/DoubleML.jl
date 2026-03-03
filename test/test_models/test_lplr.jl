@@ -336,7 +336,7 @@ end
 
     # Generate LPLR data
     rng = StableRNG(98765)
-    data = make_lplr_LZZ2020(400; alpha = 0.5, dim_x = 20, rng = rng, treatment = "continuous")
+    data = make_lplr_LZZ2020(500; alpha = 0.5, dim_x = 15, rng = rng, treatment = "continuous")
 
     # Create iterated models with early stopping
     ml_M_iterated = MLJ.IteratedModel(

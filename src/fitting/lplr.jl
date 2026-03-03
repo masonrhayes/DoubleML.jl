@@ -2,7 +2,7 @@
 DoubleMLLPLR: Logistic Partially Linear Regression model.
 
 Implements Double/Debiased Machine Learning for binary outcomes:
-E[Y | D, X] = expit{β₀D + r₀(X)}
+``E[Y | D, X] = expit{\\beta_{0} D + r_{0}(X)}``
 """
 
 """
@@ -56,6 +56,34 @@ function DoubleMLLPLR(
     # Validate data - Y must be binary {0, 1}
     _validate_binary_outcome(data.y)
 
+    # Check if treatment is binary and validate ml_m/ml_a type consistency
+    if _is_binary_treatment(data.d)
+        if !(ml_m isa MLJBase.Probabilistic)
+            @warn "Treatment is binary {0,1} but ml_m is Deterministic ($(typeof(ml_m))). " *
+                "Consider using a Probabilistic classifier (e.g., RandomForestClassifier) " *
+                "for proper probability estimation of P(D=1|X)."
+        end
+    else
+        if !(ml_m isa MLJBase.Deterministic)
+            throw(
+                ArgumentError(
+                    "Treatment is continuous but ml_m is not Deterministic. " *
+                        "Got: $(typeof(ml_m)). Use a regressor for continuous treatment."
+                )
+            )
+        end
+    end
+
+    # Validate ml_a matches ml_m type (if different from ml_m)
+    if ml_a !== nothing && ml_a !== ml_m && typeof(ml_a) != typeof(ml_m)
+        throw(
+            ArgumentError(
+                "ml_a ($(typeof(ml_a))) and ml_m ($(typeof(ml_m))) must be the same type " *
+                    "(both Probabilistic or both Deterministic)"
+            )
+        )
+    end
+
     # Set up score object
     score_obj = if score == :nuisance_space
         NuisanceSpaceScore()
@@ -91,6 +119,16 @@ function DoubleMLLPLR(
         MLJ.Machine[], MLJ.Machine[], MLJ.Machine[], MLJ.Machine[],
         (;)
     )
+end
+
+"""
+    _is_binary_treatment(d::AbstractVector) -> Bool
+
+Check if treatment variable is binary with values 0 and 1.
+"""
+function _is_binary_treatment(d::AbstractVector)
+    unique_d = sort!(unique(d))
+    return length(unique_d) == 2 && unique_d[1] == 0 && unique_d[2] == 1
 end
 
 """
@@ -201,7 +239,10 @@ function MLJ.fit!(
 
     X = DataFrame(obj.data.x, obj.data.x_cols)
     Y = obj.data.y
-    D = T.(to_numeric(obj.data.d))  # Ensure same type as Y
+    # Coerce treatment for MLJ machines using original ml_m type
+    D_coerced = coerce_target(obj.data.d, obj.ml_m)
+    # Keep numeric version for internal calculations
+    D_numeric = T.(to_numeric(obj.data.d))
 
     obj.fitted_learners_M = MLJ.Machine[]
     obj.fitted_learners_t = MLJ.Machine[]
@@ -218,7 +259,7 @@ function MLJ.fit!(
         ml_M_best, _ = _get_best_model(obj.ml_M, X, Y, verbose; model_name = "ml_M")
         ml_t_best, _ = _get_best_model(obj.ml_t, X, Y, verbose; model_name = "ml_t")
         ml_m_best, _ = _get_best_model(obj.ml_m, X, Y, verbose; model_name = "ml_m")
-        ml_a_best, _ = _get_best_model(obj.ml_a, X, D, verbose; model_name = "ml_a")
+        ml_a_best, _ = _get_best_model(obj.ml_a, X, D_coerced, verbose; model_name = "ml_a")
     else
         ml_M_best = obj.ml_M
         ml_t_best = obj.ml_t
@@ -255,7 +296,7 @@ function MLJ.fit!(
                 model_name = "ml_m", context = "for repetition $r"
             )
             ml_a_rep, _ = _get_best_model(
-                obj.ml_a, X[train_idx_tune, :], D[train_idx_tune], verbose;
+                obj.ml_a, X[train_idx_tune, :], D_coerced[train_idx_tune], verbose;
                 model_name = "ml_a", context = "for repetition $r"
             )
         else
@@ -270,20 +311,20 @@ function MLJ.fit!(
         end
 
         # Stage 1: Fit M(D,X) = P(Y=1 | D, X) on inner folds
-        M_hat_inner, M_hat_full = _fit_M_inner(obj, ml_M_rep, X, Y, D, smpls_inner, verbose)
+        M_hat_inner, M_hat_full = _fit_M_inner(obj, ml_M_rep, X, Y, D_numeric, smpls_inner, verbose)
 
         # Stage 2: Fit a(X) = E[D | X] on outer folds
-        a_hat_outer = _fit_a_outer(obj, ml_a_rep, X, D, smpls_outer, verbose)
+        a_hat_outer = _fit_a_outer(obj, ml_a_rep, X, D_coerced, smpls_outer, verbose)
 
         # Stage 3: Fit t(X) = E[logit(M) | X] on outer folds
         t_hat_outer = _fit_t_outer(obj, ml_t_rep, X, M_hat_inner, smpls_outer, smpls_inner, verbose)
 
         # Stage 4: Fit m(X) on outer folds (nuisance_space: Y=0 only; instrument: weighted)
-        m_hat_outer = _fit_m_outer(obj, ml_m_rep, X, Y, D, M_hat_full, smpls_outer, verbose)
+        m_hat_outer = _fit_m_outer(obj, ml_m_rep, X, Y, D_coerced, M_hat_full, smpls_outer, verbose)
 
         # Stage 5: Compute score elements for each outer fold (dynamic r_hat computation)
         score_elements_rep = _compute_all_score_elements(
-            obj.score_obj, Y, D, smpls_outer, t_hat_outer, a_hat_outer, m_hat_outer
+            obj.score_obj, Y, D_numeric, smpls_outer, t_hat_outer, a_hat_outer, m_hat_outer
         )
 
         # Stage 6: Root-finding for this repetition's coefficient (bracket-based)
@@ -375,12 +416,12 @@ end
 """
     _fit_a_outer(obj, ml_a, X, D, smpls_outer, verbose)
 
-Fit a(X) = E[D | X] on outer cross-fitting folds.
+Fit ``a(X) = E[D | X]`` on outer cross-fitting folds.
 
 Returns a_hat_outer for dynamic r_hat computation in root-finding.
 """
 function _fit_a_outer(
-        obj::DoubleMLLPLR{T}, ml_a, X::DataFrame, D::Vector{T},
+        obj::DoubleMLLPLR{T}, ml_a, X::DataFrame, D::AbstractVector,
         smpls_outer::Vector, verbose::Int
     ) where {T}
     n_obs = length(D)
@@ -410,7 +451,7 @@ end
 """
     _fit_t_outer(obj, ml_t, X, M_hat_inner, smpls_outer, smpls_inner, verbose)
 
-Fit t(X) = E[logit(M) | X] on outer cross-fitting folds using tuned model ml_t.
+Fit ``t(X) = E[\\text{logit}(M) | X]`` on outer cross-fitting folds using tuned model ml_t.
 
 Uses inner fold M predictions as targets.
 """
@@ -449,13 +490,13 @@ end
 """
     _fit_m_outer(obj, ml_m, X, Y, D, M_hat_full, smpls_outer, verbose)
 
-Fit m(X) on outer cross-fitting folds using tuned model ml_m.
+Fit ``m(X)`` on outer cross-fitting folds using tuned model ml_m.
 
 For nuisance_space: fit only on Y=0 observations
-For instrument: fit on all observations with sample weights M*(1-M) if supported
+For instrument: fit on all observations with sample weights ``M*(1-M)`` if supported
 """
 function _fit_m_outer(
-        obj::DoubleMLLPLR{T}, ml_m, X::DataFrame, Y::Vector{T}, D::Vector{T},
+        obj::DoubleMLLPLR{T}, ml_m, X::DataFrame, Y::Vector{T}, D::AbstractVector,
         M_hat_full::Vector{T}, smpls_outer::Vector, verbose::Int
     ) where {T}
     n_obs = length(Y)
@@ -514,7 +555,7 @@ end
 Compute score elements for each outer fold using dynamic r_hat computation.
 """
 function _compute_all_score_elements(
-        score_obj::AbstractScore, Y::Vector{T}, D::Vector{T},
+        score_obj::AbstractScore, Y::Vector{T}, D::AbstractVector,
         smpls_outer::Vector, t_hat::Vector{T}, a_hat::Vector{T}, m_hat::Vector{T}
     ) where {T}
     score_elements = NamedTuple[]
@@ -563,7 +604,7 @@ end
 """
     _solve_score_equation_bracket(score_obj, all_elements; tol=1e-8)
 
-Solve E[ψ(W; β, η)] = 0 for β using bracket-based root finding.
+Solve E[``\\psi``(W; β, η)] = 0 for β using bracket-based root finding.
 
 Uses AlefeldPotraShi method which doesn't require a good starting value.
 """
