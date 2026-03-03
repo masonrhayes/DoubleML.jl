@@ -25,14 +25,17 @@
 <!--
     # This information is used for caching.
     [PlutoStaticHTML.State]
-    input_sha = "7931131912ed756759e167445cc37f5a60abce6a345ed5972c76539e26a2874a"
+    input_sha = "56f7f90396552bdae2611d7ae0e91475044eaba9ca9be6d2d760365aa4f580b6"
     julia_version = "1.12.4"
 -->
-<pre class='language-julia'><code class='language-julia'>import Pkg; Pkg.develop(path=joinpath(@__DIR__, "../.."))</code></pre>
 
 
-<pre class='language-julia'><code class='language-julia'>Pkg.activate(joinpath(@__DIR__, "../../examples"))</code></pre>
 
+
+
+
+
+<div class="markdown"><h2 id="Load-packages-and-set-up-ML-models">Load packages and set up ML models</h2></div>
 
 <pre class='language-julia'><code class='language-julia'>using DoubleML; using StableRNGs; using MLJ; using TreeParzen; using MLJDecisionTreeInterface; using EvoTrees</code></pre>
 
@@ -43,9 +46,15 @@
 end</code></pre>
 <pre class="code-output documenter-example-output" id="var-#449#handle">MLJDecisionTreeInterface.RandomForestRegressor</pre>
 
+
+<div class="markdown"><h2 id="Generate-PLR-data">Generate PLR data</h2></div>
+
 <pre class='language-julia'><code class='language-julia'># PLR Data
-data_plr = DoubleML.make_plr_CCDDHNR2018(5000, alpha = 0.5, dim_x = 20, rng = StableRNG(42))</code></pre>
-<pre class="code-output documenter-example-output" id="var-data_plr">DoubleMLData{Float32, Vector{Float32}}(Float32[1.2566956, 4.16209, -0.79488957, 0.67903817, 0.69652003, 2.2781403, 3.7445633, -0.9087717, 0.84654087, 1.3683066  …  0.9275026, -0.06812125, 0.9634995, -2.82726, 0.6035034, 0.45007327, 1.7233989, -0.08308343, 0.41544443, -1.7952783], Float32[1.3364831, 2.6378622, -0.07964723, 0.9288351, -2.2224646, 0.66748816, 1.9711579, -1.4561268, -1.0280817, 2.306414  …  1.0702964, 0.07992836, -0.26474428, -2.1283271, -1.5947412, 0.9675669, 0.48882946, -1.9179863, -1.6641521, -2.1840165], Float32[-0.67025167 -0.14986733 … 0.41640848 -0.30865937; 2.085484 0.17391905 … -0.9364084 0.844609; … ; -0.3613366 -0.132516 … -0.69747114 -0.92015976; -3.212914 -1.6065888 … -0.5180494 -1.0555202], 5000, 20, :y, :d, [:X1, :X2, :X3, :X4, :X5, :X6, :X7, :X8, :X9, :X10, :X11, :X12, :X13, :X14, :X15, :X16, :X17, :X18, :X19, :X20])</pre>
+data_plr = DoubleML.make_plr_CCDDHNR2018(1000, alpha = 0.5, dim_x = 20, rng = StableRNG(42))</code></pre>
+<pre class="code-output documenter-example-output" id="var-data_plr">DoubleMLData{Float32, Vector{Float32}}(Float32[0.21417502, 0.9692105, -0.30895242, -0.048992738, 2.6029072, 1.4883567, 3.2605982, 1.0506742, -1.6848451, -0.40627423  …  -0.27870387, 2.7265549, 1.6948698, 2.7781668, -0.66583717, 0.78912425, 1.5714866, 0.21167372, 0.35720244, 1.2874476], Float32[-1.2644778, 1.2479526, -0.07056438, -1.4938519, 0.06656515, 1.2609595, 1.7690849, -0.95087236, -2.1373367, 0.64379275  …  -0.8578431, 0.8335334, 0.060642224, 1.8599323, -1.3742881, -1.7428911, 0.71109384, -0.05331813, -0.5296481, 1.9346514], Float32[-0.67025167 -0.14986733 … 0.41640848 -0.30865937; 2.085484 0.17391905 … -0.9364084 0.844609; … ; -0.5976384 -0.30607623 … 0.2812654 -0.3663869; 0.32168102 0.5612614 … 0.33550787 0.44790605], 1000, 20, :y, :d, [:X1, :X2, :X3, :X4, :X5, :X6, :X7, :X8, :X9, :X10, :X11, :X12, :X13, :X14, :X15, :X16, :X17, :X18, :X19, :X20])</pre>
+
+
+<div class="markdown"><p>We can check what models are available for predicting the outcome variable:</p></div>
 
 <pre class='language-julia'><code class='language-julia'># Find matching models
 models() do model
@@ -64,6 +73,9 @@ end</code></pre>
  (name = RandomForestRegressor, package_name = BetaML, ... )
  (name = SRRegressor, package_name = SymbolicRegression, ... )</pre>
 
+
+<div class="markdown"><h2 id="Run-a-simple-model">Run a simple model</h2></div>
+
 <pre class='language-julia'><code class='language-julia'>begin
     # Simple PLR with RandomForest
     ml_m = RandomForestRegressor()
@@ -72,17 +84,20 @@ end</code></pre>
     dml_plr_simple = DoubleML.DoubleMLPLR(data_plr, ml_g, ml_m, n_folds = 4, n_rep = 1)
 
     fit!(dml_plr_simple)
-
-    coeftable(dml_plr_simple)
 end</code></pre>
-<pre class="code-output documenter-example-output" id="var-ml_m">────────────────────────────────────────────────────────────────────
+<pre class="code-output documenter-example-output" id="var-ml_m">DoubleMLPLR{Float32, MLJDecisionTreeInterface.RandomForestRegressor, MLJDecisionTreeInterface.RandomForestRegressor, Nothing}
+==========================
+StatsBase.CoefTable(Any[[0.49683234095573425], [0.030681872740387917], [16.193025588989258], [5.648170330220501e-59], [0.43669697540633257], [0.5569677065051359]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
+
+<pre class='language-julia'><code class='language-julia'>coeftable(dml_plr_simple)</code></pre>
+<pre class="code-output documenter-example-output" id="var-hash142443">────────────────────────────────────────────────────────────────────
    Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
 ────────────────────────────────────────────────────────────────────
-d  0.493806   0.0136729    36.12    &lt;1e-99     0.467007     0.520604
+d  0.496832   0.0306819    16.19    &lt;1e-58     0.436697     0.556968
 ────────────────────────────────────────────────────────────────────</pre>
 
 
-<div class="markdown"><h1 id="Self-tuning-models">Self-tuning models</h1></div>
+<div class="markdown"><h1 id="Advanced-example:-self-tuning-models">Advanced example: self-tuning models</h1></div>
 
 <pre class='language-julia'><code class='language-julia'>begin
     # PLR with TreeParzen hyperparameter tuning
@@ -124,20 +139,20 @@ d  0.493806   0.0136729    36.12    &lt;1e-99     0.467007     0.520604
 end</code></pre>
 <pre class="code-output documenter-example-output" id="var-tuned_ml_m">DoubleMLPLR{Float32, MLJTuning.DeterministicTunedModel{MLJTreeParzenTuning, MLJDecisionTreeInterface.RandomForestRegressor, Nothing}, MLJTuning.DeterministicTunedModel{MLJTreeParzenTuning, MLJDecisionTreeInterface.RandomForestRegressor, Nothing}, Nothing}
 ==========================
-StatsBase.CoefTable(Any[[0.5018609166145325], [0.013468807563185692], [37.2609748840332], [7.037737654769499e-304], [0.4754625388759878], [0.5282592943530772]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
+StatsBase.CoefTable(Any[[0.5114830136299133], [0.030144501477479935], [16.96770477294922], [1.4238954846254198e-64], [0.4524008764021381], [0.5705651508576886]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
 
 <pre class='language-julia'><code class='language-julia'>coeftable(dml_plr)</code></pre>
 <pre class="code-output documenter-example-output" id="var-hash110135">────────────────────────────────────────────────────────────────────
    Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
 ────────────────────────────────────────────────────────────────────
-d  0.501861   0.0134688    37.26    &lt;1e-99     0.475463     0.528259
+d  0.511483   0.0301445    16.97    &lt;1e-63     0.452401     0.570565
 ────────────────────────────────────────────────────────────────────</pre>
 
 
-<div class="markdown"><h1 id="Iterated-models">Iterated models</h1></div>
+<div class="markdown"><h1 id="Advanced-example:-iterated-models">Advanced example: iterated models</h1></div>
 
 <pre class='language-julia'><code class='language-julia'># A simple example
-# EvoTrees have in-built early stopping; the below is just for demonstration purposes.
+# EvoTrees have in-built early stopping as an option; the below is just for demonstration purposes.
 
 begin
     # Set up iteration controls
@@ -173,13 +188,13 @@ end
 </code></pre>
 <pre class="code-output documenter-example-output" id="var-controls">DoubleMLPLR{Float32, MLJIteration.DeterministicIteratedModel{EvoTrees.EvoTreeRegressor}, MLJIteration.DeterministicIteratedModel{EvoTrees.EvoTreeRegressor}, Nothing}
 ==========================
-StatsBase.CoefTable(Any[[0.48700183629989624], [0.014193546026945114], [34.311500549316406], [5.287256313219979e-258], [0.45918299727417217], [0.5148206753256203]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
+StatsBase.CoefTable(Any[[0.4626036584377289], [0.03196043521165848], [14.474260330200195], [1.7621110128896377e-47], [0.3999623564926524], [0.5252449603828054]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
 
 <pre class='language-julia'><code class='language-julia'>coeftable(dml_plr_iterated)</code></pre>
 <pre class="code-output documenter-example-output" id="var-hash219819">────────────────────────────────────────────────────────────────────
    Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
 ────────────────────────────────────────────────────────────────────
-d  0.487002   0.0141935    34.31    &lt;1e-99     0.459183     0.514821
+d  0.462604   0.0319604    14.47    &lt;1e-46     0.399962     0.525245
 ────────────────────────────────────────────────────────────────────</pre>
 
 <pre class='language-julia'><code class='language-julia'>summary(dml_plr_iterated)</code></pre>

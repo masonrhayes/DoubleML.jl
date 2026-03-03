@@ -19,6 +19,11 @@ begin
     using EvoTrees
 end
 
+# ╔═╡ 7722c249-e2e1-431b-a3ea-409d6e8bbc24
+md"""
+## Load packages and import ML models
+"""
+
 # ╔═╡ dd0872f0-affc-4718-b5ab-7f8387f237c2
 begin
     RandomForestRegressor = @load RandomForestRegressor pkg = DecisionTree verbosity = 0
@@ -51,7 +56,7 @@ end
 
 # ╔═╡ cfb01698-a12d-4ff8-808e-7e04d65882b7
 begin
-    # Find matching models for y
+    # Find matching models for d
     models() do model
         matching(model, data_lplr.x, data_lplr.d)
     end
@@ -64,7 +69,7 @@ md"""
 
 # ╔═╡ c6e4e115-c2db-4bfe-b8fc-c6cb73e60d0d
 begin
-    # Simple IRM with RandomForest
+    # Simple LPLR with RandomForest
     ml_M = RandomForestClassifier()
     ml_t = RandomForestRegressor()
     ml_m = RandomForestRegressor()
@@ -88,12 +93,12 @@ begin
     # Set up iteration controls
     controls = [
         Step(1),
-        Patience(10),
-        NumberLimit(20),
+        Patience(6),
+        NumberLimit(25),
     ]
 
     ml_M_iterated = IteratedModel(
-        EvoTreeClassifier(max_depth = 4, eta = 0.05),
+        EvoTreeClassifier(max_depth = 4, eta = 0.01),
         resampling = Holdout(),
         measure = cross_entropy,
         iteration_parameter = :nrounds,
@@ -101,7 +106,7 @@ begin
     )
 
     ml_t_iterated = IteratedModel(
-        EvoTreeRegressor(max_depth = 4, eta = 0.05),
+        EvoTreeRegressor(max_depth = 4, eta = 0.01),
         resampling = Holdout(),
         measure = mav,
         iteration_parameter = :nrounds,
@@ -109,7 +114,7 @@ begin
     )
 
     ml_m_iterated = IteratedModel(
-        EvoTreeRegressor(max_depth = 4, eta = 0.05),
+        EvoTreeRegressor(max_depth = 4, eta = 0.01),
         resampling = Holdout(),
         measure = mae,
         iteration_parameter = :nrounds,
@@ -129,8 +134,9 @@ end
 coeftable(dml_lplr_iterated)
 
 # ╔═╡ Cell order:
-# ╠═8ddab706-13ec-11f1-86d9-cf1e4a214f61
-# ╠═75220018-ab41-41f5-a1e7-f2186195ec5f
+# ╟─8ddab706-13ec-11f1-86d9-cf1e4a214f61
+# ╟─75220018-ab41-41f5-a1e7-f2186195ec5f
+# ╟─7722c249-e2e1-431b-a3ea-409d6e8bbc24
 # ╠═5a072569-e9a6-4634-bec5-00b751791c7d
 # ╠═dd0872f0-affc-4718-b5ab-7f8387f237c2
 # ╟─2256cb84-ad2b-48af-beea-a50dce7fdcf4
@@ -141,6 +147,6 @@ coeftable(dml_lplr_iterated)
 # ╟─90943f72-2c68-493c-8903-21e2caf07b79
 # ╠═c6e4e115-c2db-4bfe-b8fc-c6cb73e60d0d
 # ╠═3a228ad5-78a0-4c7e-9d85-3b37ce0ae646
-# ╠═d1ccecf6-c53c-4da7-8d3b-f6392a8ff6eb
+# ╟─d1ccecf6-c53c-4da7-8d3b-f6392a8ff6eb
 # ╠═584302b8-1735-412a-a1a3-6bd180310efa
 # ╠═47f51991-0a11-4920-a4fb-aca0a55b5ce9

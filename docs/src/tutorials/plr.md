@@ -16,8 +16,8 @@ Where:
 - `Y` is the outcome variable
 - `D` is the treatment variable (can be continuous or binary)
 - `X` are control variables (covariates)
-- θ is the treatment effect we want to estimate
-- g_0(X) and m_0(X) are nuisance functions estimated via ML
+- $\theta$ is the treatment effect we want to estimate
+- $g_0(X)$ and $m_0(X)$ are nuisance functions estimated via ML
 
 ## Basic Usage
 
@@ -52,9 +52,7 @@ fit!(model)
 ### Step 4: Extract Results
 
 ```julia
-println("Treatment effect: ", coef(model)[1])
-println("Standard error: ", stderror(model)[1])
-println("95% CI: ", confint(model))
+summary(model)
 ```
 
 ## Score Functions

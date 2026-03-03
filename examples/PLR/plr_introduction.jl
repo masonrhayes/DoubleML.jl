@@ -13,21 +13,41 @@ Pkg.activate(joinpath(@__DIR__, "../../examples"))
 # ╔═╡ 563e2e19-68b7-432f-93f4-b0ad015f8b33
 using DoubleML; using StableRNGs; using MLJ; using TreeParzen; using MLJDecisionTreeInterface; using EvoTrees
 
+# ╔═╡ fe996ec6-951b-4fd0-9ef0-166534d5011b
+md"""
+## Load packages and set up ML models
+"""
+
 # ╔═╡ d4e5f6a7-b8c9-0123-defa-456789012345
 begin
     EvoTreeRegressor = @load EvoTreeRegressor pkg = EvoTrees verbosity = 0
     RandomForestRegressor = @load RandomForestRegressor pkg = DecisionTree verbosity = 0
 end
 
+# ╔═╡ b38360ce-5f9d-47af-bb1d-20bc0fe3cf7a
+md"""
+## Generate PLR data
+"""
+
 # ╔═╡ e5f6a7b8-c9d0-1234-efab-567890123456
 # PLR Data
-data_plr = DoubleML.make_plr_CCDDHNR2018(5000, alpha = 0.5, dim_x = 20, rng = StableRNG(42))
+data_plr = DoubleML.make_plr_CCDDHNR2018(1000, alpha = 0.5, dim_x = 20, rng = StableRNG(42))
+
+# ╔═╡ 84db5473-b0b7-4f67-9d06-ec2d05a03725
+md"""
+We can check what models are available for predicting the outcome variable:
+"""
 
 # ╔═╡ f6a7b8c9-d0e1-2345-fabc-678901234567
 # Find matching models
 models() do model
     matching(model, data_plr.x, data_plr.y)
 end
+
+# ╔═╡ d354fceb-f41f-4922-ad3f-e3d03b3d8fa0
+md"""
+## Run a simple model
+"""
 
 # ╔═╡ a7b8c9d0-e1f2-3456-abcd-789012345678
 begin
@@ -38,13 +58,14 @@ begin
     dml_plr_simple = DoubleML.DoubleMLPLR(data_plr, ml_g, ml_m, n_folds = 4, n_rep = 1)
 
     fit!(dml_plr_simple)
-
-    coeftable(dml_plr_simple)
 end
+
+# ╔═╡ 51484b4f-585d-4727-925d-e4154ffe1e3a
+coeftable(dml_plr_simple)
 
 # ╔═╡ 1089a55b-b9ec-40dc-9297-252527fd1c07
 md"""
-# Self-tuning models 
+# Advanced example: self-tuning models 
 """
 
 # ╔═╡ b8c9d0e1-f2a3-4567-bcde-890123456789
@@ -92,12 +113,12 @@ coeftable(dml_plr)
 
 # ╔═╡ ab1bc710-c605-4132-9c23-3d82769975d6
 md"""
-# Iterated models
+# Advanced example: iterated models
 """
 
 # ╔═╡ 65f19e6b-cc02-445b-8df6-14685e06bb0c
 # A simple example
-# EvoTrees have in-built early stopping; the below is just for demonstration purposes.
+# EvoTrees have in-built early stopping as an option; the below is just for demonstration purposes.
 
 begin
     # Set up iteration controls
@@ -139,14 +160,19 @@ coeftable(dml_plr_iterated)
 summary(dml_plr_iterated)
 
 # ╔═╡ Cell order:
-# ╠═66862f5f-b882-4344-96fd-56c6b5373e68
-# ╠═aedf55f4-51b3-4b85-b169-4524b241086d
+# ╟─66862f5f-b882-4344-96fd-56c6b5373e68
+# ╟─aedf55f4-51b3-4b85-b169-4524b241086d
+# ╟─fe996ec6-951b-4fd0-9ef0-166534d5011b
 # ╠═563e2e19-68b7-432f-93f4-b0ad015f8b33
 # ╠═d4e5f6a7-b8c9-0123-defa-456789012345
+# ╟─b38360ce-5f9d-47af-bb1d-20bc0fe3cf7a
 # ╠═e5f6a7b8-c9d0-1234-efab-567890123456
+# ╟─84db5473-b0b7-4f67-9d06-ec2d05a03725
 # ╠═f6a7b8c9-d0e1-2345-fabc-678901234567
+# ╟─d354fceb-f41f-4922-ad3f-e3d03b3d8fa0
 # ╠═a7b8c9d0-e1f2-3456-abcd-789012345678
-# ╠═1089a55b-b9ec-40dc-9297-252527fd1c07
+# ╠═51484b4f-585d-4727-925d-e4154ffe1e3a
+# ╟─1089a55b-b9ec-40dc-9297-252527fd1c07
 # ╠═b8c9d0e1-f2a3-4567-bcde-890123456789
 # ╠═fb3c97b4-cc43-4606-8778-a8b15970bc6a
 # ╟─ab1bc710-c605-4132-9c23-3d82769975d6
