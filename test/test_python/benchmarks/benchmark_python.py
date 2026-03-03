@@ -33,6 +33,14 @@ print()
 # Step 1: Load data
 print("Step 1: Loading data from CSV...")
 df = pd.read_csv(DATA_FILE)
+
+# Coerce to Float32 to match Julia's default (for performance parity)
+df['y'] = df['y'].astype(np.float32)
+df['d'] = df['d'].astype(np.float32)
+for col in df.columns:
+    if col.startswith('X'):
+        df[col] = df[col].astype(np.float32)
+
 print(f"  ✓ Loaded {len(df)} rows, {len(df.columns)} columns")
 print()
 
@@ -74,7 +82,7 @@ print("  ✓ Data object created")
 print()
 
 # Step 4: Run benchmark with multiple repetitions
-print("Step 4: Running benchmark (5 repetitions)...")
+print("Step 4: Running benchmark (3 repetitions)...")
 times = []
 
 for i in range(3):

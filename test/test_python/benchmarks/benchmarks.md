@@ -1,6 +1,6 @@
 # DoubleML Performance Benchmark: Julia vs Python
 
-**Generated:** 2026-02-27T21:08:17.148
+**Generated:** 2026-03-03T12:34:58.805
 
 ## Hardware
 
@@ -23,8 +23,8 @@
 
 | Language | Learner |
 |----------|---------|
-| Julia | EvoTreeRegressor (100 trees, max_depth=6) |
-| Python | XGBRegressor (100 trees, max_depth=6) |
+| Julia | EvoTreeRegressor (100 trees, max_depth=6, eta=0.1) |
+| Python | XGBRegressor (100 trees, max_depth=6, learning_rate=0.1) |
 
 ## Timing Results
 
@@ -32,33 +32,33 @@
 
 | Metric | Time (seconds) |
 |--------|----------------|
-| Median | 34.68s |
+| Median | 41.71s |
 ### Python (DoubleML)
 
 | Metric | Time (seconds) |
 |--------|----------------|
-| Median | 310.78s |
+| Median | 306.71s |
 
 ### Performance Comparison
 
 **Winner: Julia**
 
-- **Speedup Factor:** 8.96x (Julia is faster)
-- **Time Difference:** 276.1s
+- **Speedup Factor:** 7.35x (Julia is faster)
+- **Time Difference:** 264.99s
 
 ## Coefficient Estimates
 
 | Metric | Julia | Python | Difference |
 |--------|-------|--------|------------|
-| Coefficient | 0.490186 | 0.485543 | 0.004643 (0.93%) |
-| Std Error | 0.003136 | 0.003146 | 1.0e-5 (0.32%) |
+| Coefficient | 0.487874 | 0.485514 | 0.00236 (0.47%) |
+| Std Error | 0.00314 | 0.003144 | 4.0e-6 (0.14%) |
 
 **True Treatment Effect:** 0.5
 
 ### Accuracy Assessment
 
-- **Coefficient Accuracy:** Estimates differ by 0.93% from each other
-- **Standard Error Agreement:** SEs differ by 0.32%
+- **Coefficient Accuracy:** Estimates differ by 0.47% from each other
+- **Standard Error Agreement:** SEs differ by 0.14%
 
 ✓ Coefficient estimates are in good agreement (< 5% difference)
 ✓ Standard errors are in good agreement (< 10% difference)
@@ -72,9 +72,9 @@ This benchmark compares DoubleML.jl (Julia) against the Python DoubleML package 
 
 ### Key Findings
 
-1. **Performance:** Julia is 8.96x faster
-2. **Accuracy:** Both implementations produce similar coefficient estimates (0.93% difference)
-3. **Inference:** Standard errors are consistent between implementations (0.32% difference)
+1. **Performance:** Julia is 7.35x faster
+2. **Accuracy:** Both implementations produce similar coefficient estimates (0.47% difference)
+3. **Inference:** Standard errors are consistent between implementations (0.14% difference)
 
 ## Raw Data Files
 
@@ -84,4 +84,4 @@ This benchmark compares DoubleML.jl (Julia) against the Python DoubleML package 
 
 ---
 
-*Note: Benchmarks run on 100000 observations with 1000 dimensions. Times measured using BenchmarkTools (Julia) and time.perf_counter() (Python) with 5 repetitions each.*
+*Note: Benchmarks run on 100000 observations with 1000 dimensions. Times measured using BenchmarkTools (Julia) with automatic sample size determination and time.perf_counter() (Python) with 3 repetitions.*
