@@ -25,7 +25,7 @@
 <!--
     # This information is used for caching.
     [PlutoStaticHTML.State]
-    input_sha = "8c0d6dfd009aa865f39a494478d77a1d51690bd82f25ebf71b510a103e845c5a"
+    input_sha = "c9d076d91c6b798400b2961e074a2a319a5e3424172f0082454266e17884fb28"
     julia_version = "1.12.4"
 -->
 
@@ -33,6 +33,9 @@
 
 
 
+
+
+<div class="markdown"><h1 id="Interactive-Regression-Model-(IRM)-Tutorial">Interactive Regression Model (IRM) Tutorial</h1><p>This tutorial demonstrates how to use the <code>DoubleMLIRM</code> model for estimating treatment effects with binary treatments.</p><h2 id="Overview">Overview</h2><p>The Interactive Regression Model assumes:</p><p class="tex">$$Y = g_0(D, X) + \zeta, \quad \text{where } D \in \{0, 1\}$$</p><p>Where:</p><ul><li><p><span class="tex">\(Y\)</span> is the outcome variable</p></li><li><p><span class="tex">\(D\)</span> is a <strong>binary</strong> treatment variable (0 or 1)</p></li><li><p><span class="tex">\(X\)</span> are control variables (covariates)</p></li><li><p><span class="tex">\(g_0(D, X)\)</span> is the conditional mean function</p></li></ul><p>IRM allows for heterogeneous treatment effects and uses doubly robust estimation.</p></div>
 
 
 <div class="markdown"><h2 id="Load-packages-and-import-ML-models">Load packages and import ML models</h2></div>
@@ -116,13 +119,13 @@ end</code></pre>
 end</code></pre>
 <pre class="code-output documenter-example-output" id="var-dml_irm_simple">DoubleMLIRM{Float32, MLJDecisionTreeInterface.RandomForestRegressor, MLJDecisionTreeInterface.RandomForestClassifier}
 ==========================
-StatsBase.CoefTable(Any[[0.9053707122802734], [0.05485549196600914], [16.504650115966797], [3.396961989328215e-61], [0.797855923672669], [1.0128855008878779]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
+StatsBase.CoefTable(Any[[0.9024531841278076], [0.05553073063492775], [16.251419067382812], [2.1825347215342706e-59], [0.793614952048154], [1.0112914162074613]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
 
 <pre class='language-julia'><code class='language-julia'>coeftable(dml_irm_simple)</code></pre>
 <pre class="code-output documenter-example-output" id="var-hash845485">────────────────────────────────────────────────────────────────────
    Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
 ────────────────────────────────────────────────────────────────────
-d  0.905371   0.0548555    16.50    &lt;1e-60     0.797856      1.01289
+d  0.902453   0.0555307    16.25    &lt;1e-58     0.793615      1.01129
 ────────────────────────────────────────────────────────────────────</pre>
 
 
@@ -161,13 +164,13 @@ d  0.905371   0.0548555    16.50    &lt;1e-60     0.797856      1.01289
 end</code></pre>
 <pre class="code-output documenter-example-output" id="var-tuned_ml_m">DoubleMLIRM{Float32, MLJTuning.DeterministicTunedModel{MLJTreeParzenTuning, EvoTrees.EvoTreeRegressor, Nothing}, MLJTuning.ProbabilisticTunedModel{MLJTreeParzenTuning, EvoTrees.EvoTreeClassifier, Nothing}}
 ==========================
-StatsBase.CoefTable(Any[[0.8129682540893555], [0.10276787728071213], [7.9107232093811035], [2.5589791357466022e-15], [0.6115469158515272], [1.0143895923271837]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
+StatsBase.CoefTable(Any[[0.8105318546295166], [0.10225623100996017], [7.926478862762451], [2.25446995301935e-15], [0.6101133246551864], [1.0109503846038468]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
 
 <pre class='language-julia'><code class='language-julia'>coeftable(dml_irm)</code></pre>
 <pre class="code-output documenter-example-output" id="var-hash997185">────────────────────────────────────────────────────────────────────
    Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
 ────────────────────────────────────────────────────────────────────
-d  0.812968    0.102768     7.91    &lt;1e-14     0.611547      1.01439
+d  0.810532    0.102256     7.93    &lt;1e-14     0.610113      1.01095
 ────────────────────────────────────────────────────────────────────</pre>
 
 <!-- PlutoStaticHTML.End -->

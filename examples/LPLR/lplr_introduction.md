@@ -25,7 +25,7 @@
 <!--
     # This information is used for caching.
     [PlutoStaticHTML.State]
-    input_sha = "25a13056a30dc72a0f584a4ce84e7cc5acc9100d1565524a9455302c0542ae62"
+    input_sha = "f9b7fffec6565f3c6d1cb86014d4eb83961e2cffc757605983b4d33d00be878a"
     julia_version = "1.12.4"
 -->
 
@@ -33,6 +33,9 @@
 
 
 
+
+
+<div class="markdown"><h1 id="Logistic-Partially-Linear-Regression-(LPLR)-Tutorial">Logistic Partially Linear Regression (LPLR) Tutorial</h1><p>⚠️ <strong>Experimental Model</strong>: This model is still under development.</p><h2 id="Overview">Overview</h2><p>The LPLR model estimates treatment effects with <strong>binary outcomes</strong> (<span class="tex">\(Y \in \{0,1\}\)</span>):</p><p class="tex">$$E[Y|D,X] = \text{expit}(\beta_0 D + r_0(X))$$</p><p>Where:</p><ul><li><p><span class="tex">\(Y \in \{0, 1\}\)</span> is the binary outcome</p></li><li><p><span class="tex">\(D\)</span> is the treatment (continuous or binary)</p></li><li><p><span class="tex">\(X\)</span> are control variables (covariates)</p></li><li><p><span class="tex">\(\beta_0\)</span> is the treatment effect on the log-odds scale</p></li><li><p><span class="tex">\(r_0(X)\)</span> is the nuisance function (conditional log-odds)</p></li></ul><p>The treatment effect <span class="tex">\(\beta_0\)</span> represents the change in log-odds of the outcome per unit change in treatment.</p></div>
 
 
 <div class="markdown"><h2 id="Load-packages-and-import-ML-models">Load packages and import ML models</h2></div>
@@ -118,13 +121,13 @@ end</code></pre>
 end</code></pre>
 <pre class="code-output documenter-example-output" id="var-ml_t">DoubleMLLPLR{Float32, MLJDecisionTreeInterface.RandomForestClassifier, MLJDecisionTreeInterface.RandomForestRegressor, MLJDecisionTreeInterface.RandomForestRegressor, MLJDecisionTreeInterface.RandomForestRegressor}
 ==========================
-StatsBase.CoefTable(Any[[0.561190128326416], [0.07578840106725693], [7.404696941375732], [1.3145031419674135e-13], [0.4126475917887152], [0.7097326648641169]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
+StatsBase.CoefTable(Any[[0.5600261688232422], [0.07653645426034927], [7.317116737365723], [2.533554434762229e-13], [0.41001747496856017], [0.7100348626779243]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
 
 <pre class='language-julia'><code class='language-julia'>coeftable(dml_lplr_simple)</code></pre>
 <pre class="code-output documenter-example-output" id="var-hash360715">────────────────────────────────────────────────────────────────────
    Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
 ────────────────────────────────────────────────────────────────────
-d   0.56119   0.0757884     7.40    &lt;1e-12     0.412648     0.709733
+d  0.560026   0.0765365     7.32    &lt;1e-12     0.410017     0.710035
 ────────────────────────────────────────────────────────────────────</pre>
 
 
@@ -172,13 +175,13 @@ d   0.56119   0.0757884     7.40    &lt;1e-12     0.412648     0.709733
 end</code></pre>
 <pre class="code-output documenter-example-output" id="var-controls">DoubleMLLPLR{Float32, MLJIteration.ProbabilisticIteratedModel{EvoTrees.EvoTreeClassifier}, MLJIteration.DeterministicIteratedModel{EvoTrees.EvoTreeRegressor}, MLJIteration.DeterministicIteratedModel{EvoTrees.EvoTreeRegressor}, MLJIteration.DeterministicIteratedModel{EvoTrees.EvoTreeRegressor}}
 ==========================
-StatsBase.CoefTable(Any[[0.5155356526374817], [0.06758642941713333], [7.627798080444336], [2.38797191777023e-14], [0.3830686851362417], [0.6480026201387217]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
+StatsBase.CoefTable(Any[[0.5177592039108276], [0.06866498291492462], [7.540367603302002], [4.6864848860054194e-14], [0.383178310398517], [0.6523400974231383]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
 
 <pre class='language-julia'><code class='language-julia'>coeftable(dml_lplr_iterated)</code></pre>
 <pre class="code-output documenter-example-output" id="var-hash950978">────────────────────────────────────────────────────────────────────
    Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
 ────────────────────────────────────────────────────────────────────
-d  0.515536   0.0675864     7.63    &lt;1e-13     0.383069     0.648003
+d  0.517759    0.068665     7.54    &lt;1e-13     0.383178      0.65234
 ────────────────────────────────────────────────────────────────────</pre>
 
 <!-- PlutoStaticHTML.End -->

@@ -5,13 +5,40 @@ using Markdown
 using InteractiveUtils
 
 # ╔═╡ 66862f5f-b882-4344-96fd-56c6b5373e68
-import Pkg; Pkg.develop(path=joinpath(@__DIR__, "../.."))
+# ╠═╡ show_logs = false
+import Pkg; Pkg.develop(path = joinpath(@__DIR__, "../.."))
 
 # ╔═╡ aedf55f4-51b3-4b85-b169-4524b241086d
+# ╠═╡ show_logs = false
 Pkg.activate(joinpath(@__DIR__, "../../examples"))
 
 # ╔═╡ 563e2e19-68b7-432f-93f4-b0ad015f8b33
 using DoubleML; using StableRNGs; using MLJ; using TreeParzen; using MLJDecisionTreeInterface; using EvoTrees
+
+# ╔═╡ 7bc56c1b-1c2e-4196-b042-3a76efc1ad85
+md"""
+# Partially Linear Regression (PLR) Tutorial
+
+This tutorial demonstrates how to use the `DoubleMLPLR` model for estimating treatment effects in a partially linear regression framework.
+
+## Overview
+
+The Partially Linear Regression model assumes:
+
+```math
+Y = \theta D + g_0(X) + \epsilon
+```
+```math
+D = m_0(X) + v
+```
+Where:
+
+-  $Y$ is the outcome variable
+-  $D$ is the treatment variable (can be continuous or binary)
+-  $X$ are control variables (covariates)
+-  $\theta$ is the treatment effect we want to estimate
+-  $g_0(X)$ and $m_0(X)$ are nuisance functions estimated via ML
+"""
 
 # ╔═╡ fe996ec6-951b-4fd0-9ef0-166534d5011b
 md"""
@@ -52,8 +79,8 @@ md"""
 # ╔═╡ a7b8c9d0-e1f2-3456-abcd-789012345678
 begin
     # Simple PLR with RandomForest
-    ml_m = RandomForestRegressor()
-    ml_g = RandomForestRegressor()
+    ml_m = RandomForestRegressor(rng = StableRNG(42))
+    ml_g = RandomForestRegressor(rng = StableRNG(42))
 
     dml_plr_simple = DoubleML.DoubleMLPLR(data_plr, ml_g, ml_m, n_folds = 4, n_rep = 1)
 
@@ -84,7 +111,7 @@ begin
 
     # Set up the self-tuning models
     tuned_ml_m = TunedModel(
-        model = RandomForestRegressor(),
+        model = RandomForestRegressor(rng = StableRNG(42)),
         tuning = MLJTreeParzenTuning(random_trials = 100, max_simultaneous_draws = 5, linear_forgetting = 50),
         resampling = CV(nfolds = 3),
         range = space,
@@ -93,7 +120,7 @@ begin
     )
 
     tuned_ml_g = TunedModel(
-        model = RandomForestRegressor(),
+        model = RandomForestRegressor(rng = StableRNG(42)),
         tuning = MLJTreeParzenTuning(random_trials = 100, max_simultaneous_draws = 5, linear_forgetting = 50),
         resampling = CV(nfolds = 3),
         range = space,
@@ -130,7 +157,7 @@ begin
 
     # Set up learners with iteration control and early stopping
     ml_l_iterated = IteratedModel(
-        EvoTreeRegressor(),
+        EvoTreeRegressor(seed = 42),
         resampling = Holdout(),
         measure = rmse,
         iteration_parameter = :nrounds,
@@ -138,7 +165,7 @@ begin
     )
 
     ml_m_iterated = IteratedModel(
-        EvoTreeRegressor(),
+        EvoTreeRegressor(seed = 42),
         resampling = Holdout(),
         measure = rmse,
         iteration_parameter = :nrounds,
@@ -149,7 +176,7 @@ begin
     dml_plr_iterated = DoubleML.DoubleMLPLR(data_plr, ml_l_iterated, ml_m_iterated, n_folds = 4, n_rep = 1)
 
     # Fit it
-    fit!(dml_plr_iterated, verbose = 1)
+    fit!(dml_plr_iterated, verbose = 0)
 end
 
 
@@ -162,6 +189,7 @@ summary(dml_plr_iterated)
 # ╔═╡ Cell order:
 # ╟─66862f5f-b882-4344-96fd-56c6b5373e68
 # ╟─aedf55f4-51b3-4b85-b169-4524b241086d
+# ╟─7bc56c1b-1c2e-4196-b042-3a76efc1ad85
 # ╟─fe996ec6-951b-4fd0-9ef0-166534d5011b
 # ╠═563e2e19-68b7-432f-93f4-b0ad015f8b33
 # ╠═d4e5f6a7-b8c9-0123-defa-456789012345

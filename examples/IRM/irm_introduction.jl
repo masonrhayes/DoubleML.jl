@@ -5,11 +5,13 @@ using Markdown
 using InteractiveUtils
 
 # ╔═╡ a1b2c3d4-e5f6-7890-abcd-ef1234567890
+# ╠═╡ show_logs = false
 begin
-    import Pkg; Pkg.develop(path=joinpath(@__DIR__, "../.."))
+    import Pkg; Pkg.develop(path = joinpath(@__DIR__, "../.."))
 end
 
 # ╔═╡ c3d4e5f6-a7b8-9012-cdef-345678901234
+# ╠═╡ show_logs = false
 Pkg.activate(joinpath(@__DIR__, "../../examples"))
 
 # ╔═╡ 0a9939fa-ff7a-466d-b1a0-9077bdfe41b2
@@ -20,6 +22,30 @@ begin
     using TreeParzen
     using EvoTrees
 end
+
+# ╔═╡ 291fb6c3-883b-441b-a34c-061fb1dfb3fa
+md"""
+# Interactive Regression Model (IRM) Tutorial
+
+This tutorial demonstrates how to use the `DoubleMLIRM` model for estimating treatment effects with binary treatments.
+
+## Overview
+
+The Interactive Regression Model assumes:
+
+```math
+Y = g_0(D, X) + \zeta, \quad \text{where } D \in \{0, 1\}
+```
+
+Where:
+
+-  $Y$ is the outcome variable
+-  $D$ is a **binary** treatment variable (0 or 1)
+-  $X$ are control variables (covariates)
+-  $g_0(D, X)$ is the conditional mean function
+
+IRM allows for heterogeneous treatment effects and uses doubly robust estimation.
+"""
 
 # ╔═╡ 783af00f-2364-4475-836e-3b460476e0a7
 md"""
@@ -72,8 +98,8 @@ md"""
 # ╔═╡ b8c9d0e1-f2a3-4567-bcde-890123456789
 begin
     # Simple IRM with RandomForest
-    ml_g = RandomForestRegressor()
-    ml_m = RandomForestClassifier()
+    ml_g = RandomForestRegressor(rng = StableRNG(42))
+    ml_m = RandomForestClassifier(rng = StableRNG(42))
 
     dml_irm_simple = DoubleML.DoubleMLIRM(data_irm, ml_g, ml_m, score = :ATE)
 
@@ -93,11 +119,11 @@ begin
     # IRM with TreeParzen hyperparameter tuning
 
     space = Dict(
-        :max_depth => HP.QuantUniform(:max_depth, 3.0, 8.0, 1.0)
+        :max_depth => HP.QuantUniform(:max_depth, 2.0, 8.0, 1.0)
     )
 
     tuned_ml_g = TunedModel(
-        model = EvoTreeRegressor(),
+        model = EvoTreeRegressor(seed = 42),
         tuning = MLJTreeParzenTuning(),
         resampling = Holdout(),
         range = space,
@@ -106,7 +132,7 @@ begin
     )
 
     tuned_ml_m = TunedModel(
-        model = EvoTreeClassifier(),
+        model = EvoTreeClassifier(seed = 42),
         tuning = MLJTreeParzenTuning(),
         resampling = Holdout(),
         range = space,
@@ -117,7 +143,7 @@ begin
 
     dml_irm = DoubleML.DoubleMLIRM(data_irm, tuned_ml_g, tuned_ml_m)
 
-    fit!(dml_irm, verbose = 1)
+    fit!(dml_irm, verbose = 0)
 
 end
 
@@ -127,6 +153,7 @@ coeftable(dml_irm)
 # ╔═╡ Cell order:
 # ╟─a1b2c3d4-e5f6-7890-abcd-ef1234567890
 # ╟─c3d4e5f6-a7b8-9012-cdef-345678901234
+# ╟─291fb6c3-883b-441b-a34c-061fb1dfb3fa
 # ╟─783af00f-2364-4475-836e-3b460476e0a7
 # ╠═0a9939fa-ff7a-466d-b1a0-9077bdfe41b2
 # ╠═d4e5f6a7-b8c9-0123-defa-456789012345

@@ -2,6 +2,7 @@ using Documenter
 using DoubleML
 using Documenter.Remotes: GitHub
 using PlutoStaticHTML
+using SHA
 
 # Build Pluto notebooks before generating documentation
 println("Building Pluto notebooks...")
@@ -17,6 +18,20 @@ notebooks = [
 notebooks_output_dir = joinpath(@__DIR__, "src", "notebooks")
 mkpath(notebooks_output_dir)
 
+"""
+    files_are_equal(path1, path2) -> Bool
+
+Compare two files by their SHA256 checksum to determine if they have the same content.
+"""
+function files_are_equal(path1::String, path2::String)
+    isfile(path1) && isfile(path2) || return false
+    return open(path1, "r") do io1
+        open(path2, "r") do io2
+            return sha256(io1) == sha256(io2)
+        end
+    end
+end
+
 # Build each notebook and copy to docs/src/notebooks/
 for (title, notebook_path) in notebooks
     if isfile(notebook_path)
@@ -30,6 +45,7 @@ for (title, notebook_path) in notebooks
             notebook_dir;
             output_format = PlutoStaticHTML.documenter_output,
             add_documenter_css = true,
+            previous_dir = notebooks_output_dir
         )
 
         # Build the notebook
@@ -40,10 +56,14 @@ for (title, notebook_path) in notebooks
         generated_md = replace(notebook_name, ".jl" => ".md")
         generated_path = joinpath(notebook_dir, generated_md)
 
-        # Copy to docs/src/notebooks/
+        # Copy to docs/src/notebooks/ only if content changed
         dest_path = joinpath(notebooks_output_dir, generated_md)
-        cp(generated_path, dest_path; force = true)
-        println("    ✓ Copied to: $dest_path")
+        if files_are_equal(generated_path, dest_path)
+            println("    ✓ Up to date: $dest_path")
+        else
+            cp(generated_path, dest_path; force = true)
+            println("    ✓ Updated: $dest_path")
+        end
     else
         @warn "Notebook not found: $notebook_path"
     end
@@ -59,6 +79,7 @@ makedocs(
     authors = "Mason R. Hayes and contributors",
     repo = GitHub("masonrhayes", "DoubleML.jl"),
     format = Documenter.HTML(;
+        mathengine = MathJax3(),
         prettyurls = get(ENV, "CI", "false") == "true",
         canonical = "https://masonrhayes.github.io/DoubleML.jl",
         edit_link = "main",
@@ -69,11 +90,6 @@ makedocs(
     pages = [
         "Home" => "index.md",
         "User Guide" => "user-guide.md",
-        "Tutorials" => [
-            "PLR" => "tutorials/plr.md",
-            "IRM" => "tutorials/irm.md",
-            "LPLR" => "tutorials/lplr.md",
-        ],
         "Examples" => [
             "Overview" => "examples.md",
             "PLR Introduction" => "notebooks/plr_introduction.md",

@@ -87,7 +87,7 @@ jobs:
       - name: Install dependencies
         run: |
           julia --project=docs -e 'using Pkg; Pkg.develop(Pkg.PackageSpec(path=pwd())); Pkg.instantiate()'
-          julia --project=examples -e 'using Pkg; Pkg.instantiate()' # Add this line
+          julia --project=examples -e 'using Pkg; Pkg.instantiate()' 
 
       - name: Build and Deploy
         env:
