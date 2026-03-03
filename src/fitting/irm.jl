@@ -2,7 +2,7 @@
 DoubleMLIRM: Interactive Regression Model.
 
 Implements Double/Debiased Machine Learning for IRM:
-Y = g_0(D, X) + ζ, where D is binary (0/1)
+``Y = g_0(D, X) + \\zeta``, where D is binary (0 or 1)
 """
 
 """
@@ -173,6 +173,10 @@ function MLJ.fit!(obj::DoubleMLIRM{T}; verbose::Int = 0, force::Bool = false) wh
     Y = obj.data.y
     D = obj.data.d
 
+    # Pre-coerce target variables to avoid per-fold coercion overhead
+    Y_coerced = coerce_target(Y, obj.ml_g)
+    D_coerced = coerce_target(D, obj.ml_m)
+
     all_cond_smpls = get_conditional_sample_splitting(n_obs, obj.n_folds, obj.n_rep, D)
     all_smpls = draw_sample_splitting(n_obs, obj.n_folds, obj.n_rep)
 
@@ -234,9 +238,8 @@ function MLJ.fit!(obj::DoubleMLIRM{T}; verbose::Int = 0, force::Bool = false) wh
 
             if length(train_idx_d0) > 0
                 X_train_control = X[train_idx_d0, :]
-                Y_train_control = Y[train_idx_d0]
-                Y_train_control_coerced = coerce_target(Y_train_control, obj.ml_g)
-                mach_g0 = machine(rep_ml_g, X_train_control, Y_train_control_coerced)
+                Y_train_control = Y_coerced[train_idx_d0]
+                mach_g0 = machine(rep_ml_g, X_train_control, Y_train_control)
                 MLJ.fit!(mach_g0, verbosity = verbose)
                 push!(obj.fitted_learners_g0, mach_g0)
                 g_hat0, g0_pred_raw = predict_nuisance(mach_g0, X_test, "g_0(X)")
@@ -247,9 +250,8 @@ function MLJ.fit!(obj::DoubleMLIRM{T}; verbose::Int = 0, force::Bool = false) wh
             if obj.score_obj isa ATEScore
                 if length(train_idx_d1) > 0
                     X_train_treated = X[train_idx_d1, :]
-                    Y_train_treated = Y[train_idx_d1]
-                    Y_train_treated_coerced = coerce_target(Y_train_treated, obj.ml_g)
-                    mach_g1 = machine(rep_ml_g, X_train_treated, Y_train_treated_coerced)
+                    Y_train_treated = Y_coerced[train_idx_d1]
+                    mach_g1 = machine(rep_ml_g, X_train_treated, Y_train_treated)
                     MLJ.fit!(mach_g1, verbosity = verbose)
                     push!(obj.fitted_learners_g1, mach_g1)
                     g_hat1, g1_pred_raw = predict_nuisance(mach_g1, X_test, "g_1(X)")
@@ -262,9 +264,8 @@ function MLJ.fit!(obj::DoubleMLIRM{T}; verbose::Int = 0, force::Bool = false) wh
             end
 
             X_train = X[train_idx, :]
-            D_train = D[train_idx]
-            D_train_coerced = coerce_target(D_train, obj.ml_m)
-            mach_m = machine(rep_ml_m, X_train, D_train_coerced)
+            D_train = D_coerced[train_idx]
+            mach_m = machine(rep_ml_m, X_train, D_train)
             MLJ.fit!(mach_m, verbosity = verbose)
             push!(obj.fitted_learners_m, mach_m)
             m_hat, m_pred_raw = predict_nuisance(mach_m, X_test, "m(X)")

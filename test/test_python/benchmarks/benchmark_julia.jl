@@ -53,13 +53,13 @@ EvoTreeRegressor = @load EvoTreeRegressor pkg = EvoTrees verbosity = 0
 ml_l = EvoTreeRegressor(
     nrounds = 100,
     eta = 0.1,
-    max_depth = 4
+    max_depth = 6
 )
 
 ml_m = EvoTreeRegressor(
     nrounds = 100,
     eta = 0.1,
-    max_depth = 4
+    max_depth = 6
 )
 println("  ✓ Learners configured")
 println()
@@ -82,8 +82,8 @@ println("  Warming up...")
 fit!(model)
 
 # Benchmark with BenchmarkTools
-println("  Running 5 samples...")
-b = @benchmark fit!(m, force = true, verbose = 1) setup = (m = DoubleMLPLR($data, $ml_l, $ml_m, n_folds = $N_FOLDS))
+println("  Running 3 samples...")
+b = @benchmark fit!(m, force = true, verbose = 1) setup = (m = DoubleMLPLR($data, $ml_l, $ml_m, n_folds = $N_FOLDS)) evals = 3
 
 median_time = median(b.times) / 1.0e9  # Convert ns to seconds
 

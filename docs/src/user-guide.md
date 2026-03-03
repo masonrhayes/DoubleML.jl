@@ -43,9 +43,9 @@ This is essential for valid inference - without it, regularization bias returns.
 
 **When to use:** Continuous or binary treatment, constant treatment effect
 
-```
-Y = θ·D + g₀(X) + ε
-D = m₀(X) + v
+```math
+Y = \theta D + g_0(X) + \varepsilon \\
+D = m_0(X) + v
 ```
 
 **Learners:** `ml_l` for E[Y|X], `ml_m` for E[D|X]
@@ -62,10 +62,10 @@ fit!(model)
 
 ### Interactive Regression Model (IRM)
 
-**When to use:** Binary treatment (D ∈ {0,1}), allows heterogeneous effects
+**When to use:** Binary treatment (``D \in {0,1}``), allows heterogeneous effects
 
-```
-Y = g₀(D, X) + ζ   where D ∈ {0, 1}
+```math
+Y = g_0(D, X) + \zeta, \space \\ \text{where} \space D \in \{0, 1\}
 ```
 
 **Learners:** `ml_g` for E[Y|X,D], `ml_m` (classifier) for P(D=1|X)
@@ -82,17 +82,18 @@ fit!(model)
 
 ### Logistic Partially Linear Regression (LPLR) ⚠️ Experimental
 
-**When to use:** Binary outcome (Y ∈ {0,1}), treatment effect on log-odds scale
+**When to use:** Binary outcome (``Y \in {0,1}``), treatment effect on log-odds scale
 
-```
-E[Y|D,X] = expit(β₀·D + r₀(X))   where Y ∈ {0, 1}
+```math
+E[Y|D,X] = \text{expit}(\beta_0 D + r_0(X)), \\  \text{where} \space Y \in \{0, 1\}
 ```
 
-**Learners:** 
+**Learners:**
+
 - `ml_M` (classifier) for P(Y=1|D,X)
-- `ml_t` for E[logit(M)|X]
-- `ml_m` for nuisance estimation
-- `ml_a` (optional) for E[D|X]
+- `ml_t` for ``E[\text{logit}(M)|X]``
+- `ml_m` for nuisance estimation for ``E[D|X]``
+- `ml_a` (optional) alterantive for ``E[D|X]``
 
 ```julia
 model = DoubleMLLPLR(data, ml_M, ml_t, ml_m, n_folds=5, score=:nuisance_space)
@@ -101,18 +102,18 @@ fit!(model)
 
 **Score functions:**
 
-- `:nuisance_space` (default) - fits `ml_m` on Y=0 observations only
-- `:instrument` - uses weighted estimation with M*(1-M) weights
+- `:nuisance_space` (default) - fits `ml_m` on ``Y=0`` observations only
+- `:instrument` - uses weighted estimation with ``M*(1-M)`` weights
 
 **Note:** This model is experimental and may change in future versions.
 
 ## Learner Naming Convention
 
-| Model          | Learner 1            | Learner 2            | Notes                            |
-| -------------- | -------------------- | -------------------- | -------------------------------- |
-| DoubleMLPLR    | `ml_l` (E[Y\|X])   | `ml_m` (E[D\|X])   | `ml_g` optional for IV-type    |
-| DoubleMLIRM    | `ml_g` (E[Y\|X,D]) | `ml_m` (P(D=1\|X)) | Must use classifier for `ml_m` |
-| DoubleMLLPLR   | `ml_M` (P(Y=1\|D,X)) | `ml_t` (E[logit(M)\|X]) | `ml_m` for nuisance; ⚠️ Experimental |
+| Model        | Learner 1                 | Learner 2                           | Learner 3                              |
+| ------------ | ------------------------- | ----------------------------------- | -------------------------------------- |
+| DoubleMLPLR  | `ml_l` (``E[Y\|X]``)     | `ml_m` (``E[D\|X]``)               | `ml_g` (for `:IV_type` score only) |
+| DoubleMLIRM  | `ml_g` (``E[Y\|X,D]``)   | `ml_m` (``E[D\|X]``)               | --------------------                   |
+| DoubleMLLPLR | `ml_M` (``P(Y=1\|D,X)``) | `ml_t` (``E[\text{logit}(M)\|X]``) | `ml_m` (``E[D\|X]``)                  |
 
 ## Workflow
 
@@ -130,7 +131,7 @@ data = DoubleMLData(
 	x_cols=[:x1, :x2]
 )
 
-# Or use built-in generators
+# Or use built-in generators (set `return_type` = DataFrame to get a DataFrame)
 data = make_plr_CCDDHNR2018(500, alpha=0.5)
 ```
 
@@ -160,6 +161,7 @@ fit!(model)
 ### 4. Extract Results
 
 ```julia
+summary(model) 		     # Print summary of results
 θ = coef(model)[1]           # Point estimate
 se = stderror(model)[1]      # Standard error
 ci = confint(model)          # 95% CI
@@ -170,7 +172,7 @@ ct = coeftable(model)        # Summary table
 
 ```julia
 bootstrap!(model, n_rep_boot=1000, method=:normal)
-joint_ci = confint(model, joint=true)  # Controls family-wise error rate
+joint_ci = confint(model, joint=true)  # Get joint confidence intervals
 ```
 
 ## StatsAPI Interface

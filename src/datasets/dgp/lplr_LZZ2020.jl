@@ -35,12 +35,10 @@ as in Liu et al. (2021).
 - Outcome: y ~ Bernoulli(p)
 
 # Nuisance Functions
-- a_0(x) = 2/(1+exp(x₁)) - 2/(1+exp(x₂)) + sin(x₃) + cos(x₄) 
-           + 0.5·I(x₅>0) - 0.5·I(x₆>0) + 0.2·x₇·x₈ - 0.2·x₉·x₁₀
+- a_0(x) = ``2/(1+exp(x_1)) - 2/(1+exp(x_2)) + sin(x_3) + cos(x_4) \\
+           + 0.5·I(x_5>0) - 0.5·I(x_6>0) + 0.2·x_7·x_8 - 0.2·x_9·x_{10}``
 
-- r_0(x) = 0.1·x₁·x₂·x₃ + 0.1·x₄·x₅ + 0.1·x₆³ - 0.5·sin²(x₇) 
-           + 0.5·cos(x₈) + 1/(1+x₉²) - 1/(1+exp(x₁₀))
-           + 0.25·I(x₁₁>0) - 0.25·I(x₁₃>0)  (balanced)
+- r_0(x) = ``0.1·x_1·x_2·x_3 + 0.1·x_4·x_5 + 0.1·x_6^3 - 0.5·sin^2(x_7) \\ + 0.5·cos(x_8) + 1/(1+x_9^2) - 1/(1+exp(x_{10})) \\ + 0.25·I(x_{11}>0) - 0.25·I(x_{13}>0)``  (balanced)
            Or with different coefficients for unbalanced
 
 # Examples

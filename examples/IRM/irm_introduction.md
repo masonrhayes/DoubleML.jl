@@ -25,16 +25,20 @@
 <!--
     # This information is used for caching.
     [PlutoStaticHTML.State]
-    input_sha = "28053b176c99ae50ce44d8973ba9ab3301e74bdddd0bfdde0d45df0bc5a2af05"
+    input_sha = "c9d076d91c6b798400b2961e074a2a319a5e3424172f0082454266e17884fb28"
     julia_version = "1.12.4"
 -->
-<pre class='language-julia'><code class='language-julia'>begin
-    import Pkg; Pkg.develop(path=joinpath(@__DIR__, "../.."))
-end</code></pre>
 
 
-<pre class='language-julia'><code class='language-julia'>Pkg.activate(joinpath(@__DIR__, "../../examples"))</code></pre>
 
+
+
+
+
+<div class="markdown"><h1 id="Interactive-Regression-Model-(IRM)-Tutorial">Interactive Regression Model (IRM) Tutorial</h1><p>This tutorial demonstrates how to use the <code>DoubleMLIRM</code> model for estimating treatment effects with binary treatments.</p><h2 id="Overview">Overview</h2><p>The Interactive Regression Model assumes:</p><p class="tex">$$Y = g_0(D, X) + \zeta, \quad \text{where } D \in \{0, 1\}$$</p><p>Where:</p><ul><li><p><span class="tex">\(Y\)</span> is the outcome variable</p></li><li><p><span class="tex">\(D\)</span> is a <strong>binary</strong> treatment variable (0 or 1)</p></li><li><p><span class="tex">\(X\)</span> are control variables (covariates)</p></li><li><p><span class="tex">\(g_0(D, X)\)</span> is the conditional mean function</p></li></ul><p>IRM allows for heterogeneous treatment effects and uses doubly robust estimation.</p></div>
+
+
+<div class="markdown"><h2 id="Load-packages-and-import-ML-models">Load packages and import ML models</h2></div>
 
 <pre class='language-julia'><code class='language-julia'>begin
     using DoubleML
@@ -53,9 +57,15 @@ end</code></pre>
 end</code></pre>
 <pre class="code-output documenter-example-output" id="var-#540#dic">MLJDecisionTreeInterface.RandomForestClassifier</pre>
 
+
+<div class="markdown"><h2 id="Generate-IRM-data">Generate IRM data</h2></div>
+
 <pre class='language-julia'><code class='language-julia'># IRM Data
-data_irm = DoubleML.make_irm_data(10000, theta = 0.5, dim_x = 100, rng = StableRNG(42))</code></pre>
-<pre class="code-output documenter-example-output" id="var-data_irm">DoubleMLData{Float32, CategoricalArrays.CategoricalVector{Float32, UInt32, Float32, CategoricalArrays.CategoricalValue{Float32, UInt32}, Union{}}}(Float32[0.37352446, 1.125557, -0.5569645, 0.17525621, -1.0872172, 0.32317752, 1.2394512, 0.6840453, 1.0432272, 2.5331562  …  -1.0704536, -0.2607919, 1.1385626, -1.582762, 1.5980701, 2.1474342, 2.6292956, 2.458277, 2.2120817, -0.028367579], CategoricalArrays.CategoricalValue{Float32, UInt32}[0.0f0, 1.0f0, 0.0f0, 0.0f0, 1.0f0, 0.0f0, 1.0f0, 0.0f0, 0.0f0, 1.0f0  …  0.0f0, 1.0f0, 0.0f0, 0.0f0, 1.0f0, 1.0f0, 1.0f0, 1.0f0, 1.0f0, 0.0f0], Float32[-0.56396604 0.22146161 … -0.026084585 -0.55734754; 0.31028554 0.50824165 … 1.0575864 1.1089114; … ; 2.0035193 0.33156925 … -2.093451 -1.0798455; 0.2469462 -0.33030185 … -1.2763116 0.20448275], 10000, 100, :y, :d, [:X1, :X2, :X3, :X4, :X5, :X6, :X7, :X8, :X9, :X10  …  :X91, :X92, :X93, :X94, :X95, :X96, :X97, :X98, :X99, :X100])</pre>
+data_irm = DoubleML.make_irm_data(1000, theta = 0.5, dim_x = 100, rng = StableRNG(42))</code></pre>
+<pre class="code-output documenter-example-output" id="var-data_irm">DoubleMLData{Float32, CategoricalArrays.CategoricalVector{Float32, UInt32, Float32, CategoricalArrays.CategoricalValue{Float32, UInt32}, Union{}}}(Float32[-0.6748344, 0.3039633, 0.6760439, 1.4083221, -0.8368299, -0.61595523, 3.0014334, -0.036194555, 1.864324, -0.28150964  …  0.8323356, -1.2143124, -1.2397234, -1.3907428, -0.14038181, 2.120363, -1.8365414, -0.623508, 1.898227, 1.4702643], CategoricalArrays.CategoricalValue{Float32, UInt32}[0.0f0, 0.0f0, 0.0f0, 0.0f0, 1.0f0, 1.0f0, 1.0f0, 0.0f0, 1.0f0, 0.0f0  …  1.0f0, 0.0f0, 0.0f0, 0.0f0, 1.0f0, 1.0f0, 1.0f0, 0.0f0, 0.0f0, 0.0f0], Float32[-0.8857411 -0.54276526 … -0.4588549 0.062866904; -0.9109771 -0.48209068 … -0.4358175 1.0236975; … ; -0.8479842 -1.4113976 … 0.59593326 0.031701036; -0.9461808 -1.1490784 … -1.3875467 -1.6245216], 1000, 100, :y, :d, [:X1, :X2, :X3, :X4, :X5, :X6, :X7, :X8, :X9, :X10  …  :X91, :X92, :X93, :X94, :X95, :X96, :X97, :X98, :X99, :X100])</pre>
+
+
+<div class="markdown"><p>View what models are available for our data</p></div>
 
 <pre class='language-julia'><code class='language-julia'>begin
     # Find matching models for y
@@ -95,6 +105,9 @@ end</code></pre>
  (name = PerceptronClassifier, package_name = BetaML, ... )
  (name = RandomForestClassifier, package_name = BetaML, ... )</pre>
 
+
+<div class="markdown"><h2 id="Run-a-simple-model">Run a simple model</h2></div>
+
 <pre class='language-julia'><code class='language-julia'>begin
     # Simple IRM with RandomForest
     ml_g = RandomForestRegressor()
@@ -103,26 +116,32 @@ end</code></pre>
     dml_irm_simple = DoubleML.DoubleMLIRM(data_irm, ml_g, ml_m, score = :ATE)
 
     fit!(dml_irm_simple)
-
-    coeftable(dml_irm_simple)
 end</code></pre>
-<pre class="code-output documenter-example-output" id="var-dml_irm_simple">────────────────────────────────────────────────────────────────────
+<pre class="code-output documenter-example-output" id="var-dml_irm_simple">DoubleMLIRM{Float32, MLJDecisionTreeInterface.RandomForestRegressor, MLJDecisionTreeInterface.RandomForestClassifier}
+==========================
+StatsBase.CoefTable(Any[[0.9024531841278076], [0.05553073063492775], [16.251419067382812], [2.1825347215342706e-59], [0.793614952048154], [1.0112914162074613]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
+
+<pre class='language-julia'><code class='language-julia'>coeftable(dml_irm_simple)</code></pre>
+<pre class="code-output documenter-example-output" id="var-hash845485">────────────────────────────────────────────────────────────────────
    Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
 ────────────────────────────────────────────────────────────────────
-d  0.674031   0.0183706    36.69    &lt;1e-99     0.638025     0.710037
+d  0.902453   0.0555307    16.25    &lt;1e-58     0.793615      1.01129
 ────────────────────────────────────────────────────────────────────</pre>
+
+
+<div class="markdown"><h2 id="Advanced-example:-self-tuning-models">Advanced example: self-tuning models</h2></div>
 
 <pre class='language-julia'><code class='language-julia'>begin
     # IRM with TreeParzen hyperparameter tuning
 
     space = Dict(
-        :max_depth =&gt; HP.QuantUniform(:max_depth, 2.0, 12.0, 1.0)
+        :max_depth =&gt; HP.QuantUniform(:max_depth, 3.0, 8.0, 1.0)
     )
 
     tuned_ml_g = TunedModel(
         model = EvoTreeRegressor(),
-        tuning = MLJTreeParzenTuning(random_trials = 75, draws = 50),
-        resampling = Holdout(fraction_train = 0.8),
+        tuning = MLJTreeParzenTuning(),
+        resampling = Holdout(),
         range = space,
         measure = MLJ.rmse,
         acceleration = CPUProcesses(),
@@ -130,10 +149,10 @@ d  0.674031   0.0183706    36.69    &lt;1e-99     0.638025     0.710037
 
     tuned_ml_m = TunedModel(
         model = EvoTreeClassifier(),
-        tuning = MLJTreeParzenTuning(random_trials = 75, draws = 50),
-        resampling = Holdout(fraction_train = 0.8),
+        tuning = MLJTreeParzenTuning(),
+        resampling = Holdout(),
         range = space,
-        measure = MLJ.brier_score,
+        measure = MLJ.cross_entropy,
         acceleration = CPUProcesses(),
     )
 
@@ -145,13 +164,13 @@ d  0.674031   0.0183706    36.69    &lt;1e-99     0.638025     0.710037
 end</code></pre>
 <pre class="code-output documenter-example-output" id="var-tuned_ml_m">DoubleMLIRM{Float32, MLJTuning.DeterministicTunedModel{MLJTreeParzenTuning, EvoTrees.EvoTreeRegressor, Nothing}, MLJTuning.ProbabilisticTunedModel{MLJTreeParzenTuning, EvoTrees.EvoTreeClassifier, Nothing}}
 ==========================
-StatsBase.CoefTable(Any[[0.5573905110359192], [0.04278203845024109], [13.028610229492188], [8.412598772482777e-39], [0.4735392564882387], [0.6412417655835997]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
+StatsBase.CoefTable(Any[[0.8105318546295166], [0.10225623100996017], [7.926478862762451], [2.25446995301935e-15], [0.6101133246551864], [1.0109503846038468]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
 
 <pre class='language-julia'><code class='language-julia'>coeftable(dml_irm)</code></pre>
 <pre class="code-output documenter-example-output" id="var-hash997185">────────────────────────────────────────────────────────────────────
    Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
 ────────────────────────────────────────────────────────────────────
-d  0.557391    0.042782    13.03    &lt;1e-38     0.473539     0.641242
+d  0.810532    0.102256     7.93    &lt;1e-14     0.610113      1.01095
 ────────────────────────────────────────────────────────────────────</pre>
 
 <!-- PlutoStaticHTML.End -->

@@ -88,6 +88,9 @@ export DoubleMLData, check_binary, dtype
 export DoubleMLPLR, DoubleMLIRM, DoubleMLLPLR
 export AbstractDoubleML, AbstractScore
 
+# Bootstrap method types
+export AbstractBootstrapMethod, NormalBootstrap, WildBootstrap, BayesBootstrap
+
 # Score types
 export PartiallingOutScore, IVTypeScore
 export ATEScore, ATTEScore

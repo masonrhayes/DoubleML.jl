@@ -26,11 +26,11 @@ Y = α·D + g(X) + ζ    (Outcome equation)
 D = m(X) + v          (Treatment equation)
 ```
 where:
-- `g(X) = b₀·exp(X₁)/(1 + exp(X₁)) + b₁·X₃`
-- `m(X) = a₀·X₁ + a₁·exp(X₃)/(1 + exp(X₃))`
+- `g(X) = b_0·exp(X_1)/(1 + exp(X_1)) + b_1·X_3`
+- `m(X) = a_0·X_1 + a_1·exp(X_3)/(1 + exp(X_3))`
 
 The covariates X follow a multivariate normal distribution with Toeplitz
-covariance structure (correlation 0.7^|j-k| between Xⱼ and Xₖ).
+covariance structure (correlation 0.7^|j-k| between X_j and X_k).
 
 # Arguments
 - `n_obs::Int`: Number of observations to generate

@@ -150,8 +150,8 @@ report = """
 
 | Language | Learner |
 |----------|---------|
-| Julia | EvoTreeRegressor (100 trees, max_depth=6) |
-| Python | XGBRegressor (100 trees, max_depth=6) |
+| Julia | EvoTreeRegressor (100 trees, max_depth=6, eta=0.1) |
+| Python | XGBRegressor (100 trees, max_depth=6, learning_rate=0.1) |
 
 ## Timing Results
 
@@ -211,7 +211,7 @@ This benchmark compares DoubleML.jl (Julia) against the Python DoubleML package 
 
 ---
 
-*Note: Benchmarks run on $(n_obs) observations with $(dim_x) dimensions. Times measured using BenchmarkTools (Julia) and time.perf_counter() (Python) with 5 repetitions each.*
+*Note: Benchmarks run on $(n_obs) observations with $(dim_x) dimensions. Times measured using BenchmarkTools (Julia) with automatic sample size determination and time.perf_counter() (Python) with 3 repetitions.*
 """
 
 # Write report
