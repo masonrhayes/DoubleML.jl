@@ -196,7 +196,7 @@ end
         DoubleML.fit!(model_rep5)
         bootstrap!(model_rep5; n_rep_boot = 200, method = :wild, rng = rng)
         @test size(model_rep5.boot_t_stat) == (200, 1, 5)
-        
+
         ci_joint5 = confint(model_rep5; joint = true, level = 0.95)
         @test size(ci_joint5) == (1, 2)
         @test all(isfinite, ci_joint5)
@@ -209,13 +209,13 @@ end
         data = make_plr_CCDDHNR2018(300; alpha = 0.5, rng = rng)
         model = DoubleMLPLR(data, LinearRegressor(), LinearRegressor(); n_folds = 3, n_rep = 2)
         DoubleML.fit!(model)
-        
+
         n_rep_boot = 500
         bootstrap!(model; n_rep_boot = n_rep_boot, method = :normal, rng = rng)
 
         # Check dimensions
         @test size(model.boot_t_stat) == (n_rep_boot, 1, 2)
-        
+
         # Check all values are finite
         @test all(isfinite, model.boot_t_stat)
 
@@ -261,14 +261,14 @@ end
         # Re-run bootstrap with same seed on same fitted model
         rng3 = StableRNG(98765)
         bootstrap!(model1; n_rep_boot = 200, method = :normal, rng = rng3)
-        
+
         # Should be identical
         @test boot_t_first == model1.boot_t_stat
 
         # Different seed should give different results
         rng4 = StableRNG(11111)
         bootstrap!(model1; n_rep_boot = 200, method = :normal, rng = rng4)
-        
+
         # Should be different (very unlikely to be identical by chance)
         @test boot_t_first != model1.boot_t_stat
     end
@@ -288,7 +288,7 @@ end
 
         @test has_bootstrapped(model_irm)
         @test size(model_irm.boot_t_stat) == (300, 1, 1)
-        
+
         ci_irm = confint(model_irm; joint = true, level = 0.95)
         @test size(ci_irm) == (1, 2)
         @test all(isfinite, ci_irm)
@@ -296,7 +296,7 @@ end
         # Test with different bootstrap methods
         bootstrap!(model_irm; n_rep_boot = 200, method = :wild, rng = rng)
         @test model_irm.boot_method isa WildBootstrap
-        
+
         bootstrap!(model_irm; n_rep_boot = 200, method = :bayes, rng = rng)
         @test model_irm.boot_method isa BayesBootstrap
     end
@@ -315,7 +315,7 @@ end
         DoubleML.fit!(model)
         bootstrap!(model; n_rep_boot = 100, method = :normal, rng = rng)
         boot_t_first = copy(model.boot_t_stat)
-        
+
         bootstrap!(model; n_rep_boot = 200, method = :normal, rng = rng)
         @test has_bootstrapped(model)
         @test size(model.boot_t_stat) == (200, 1, 1)  # Should have new size
@@ -325,7 +325,7 @@ end
         @test_throws DomainError confint(model; level = 0.0)   # Zero boundary
         @test_throws DomainError confint(model; level = 1.0)   # One boundary
         @test_throws DomainError confint(model; level = 1.5)   # Greater than 1
-        
+
         # Test valid boundary cases (should NOT throw)
         @test size(confint(model; level = 0.001)) == (1, 2)
         @test size(confint(model; level = 0.999)) == (1, 2)
@@ -346,11 +346,11 @@ end
 
         joint_width = ci_joint[2] - ci_joint[1]
         pointwise_width = ci_pointwise[2] - ci_pointwise[1]
-        
+
         @test 0.8 < joint_width / pointwise_width < 1.2
 
         # Test at different confidence levels
-        for level in [0.90, 0.95, 0.99]
+        for level in [0.9, 0.95, 0.99]
             ci = confint(model; joint = true, level = level)
             @test size(ci) == (1, 2)
             @test ci[2] > ci[1]  # Upper > lower
@@ -360,7 +360,7 @@ end
         max_abs_t = vec(maximum(abs.(model.boot_t_stat[:, :, 1]), dims = 2))
         empirical_cv = quantile(max_abs_t, 0.95)
         theoretical_cv = quantile(Normal(), 0.975)  # For 95% CI
-        
+
         # Should be within 10% of theoretical value for large bootstrap samples
         @test abs(empirical_cv - theoretical_cv) / theoretical_cv < 0.15
     end

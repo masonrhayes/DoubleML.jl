@@ -59,7 +59,7 @@ A matrix with two columns: lower and upper bounds of the confidence interval.
 """
 function StatsAPI.confint(obj::AbstractDoubleML; joint::Bool = false, level::Real = 0.95)
     !isfitted(obj) && error("Model not fitted")
-    
+
     if level <= 0 || level >= 1
         throw(DomainError(level, "Confidence level must be in (0, 1). Got level = $level."))
     end
