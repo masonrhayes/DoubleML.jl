@@ -41,10 +41,11 @@ RandomForestRegressor = @load RandomForestRegressor pkg = DecisionTree verbosity
     ct = coeftable(dml)
     @test ct isa StatsBase.CoefTable
 
-    # Verify model was fitted and psi arrays are populated
-    @test length(dml.psi) == n_obs
-    @test length(dml.psi_a) == n_obs
-    @test length(dml.psi_b) == n_obs
+    # Verify model was fitted and all_psi arrays are populated
+    @test size(dml.all_psi, 1) == n_obs
+    @test size(dml.all_psi, 2) == dml.n_rep
+    @test size(dml.all_psi_a, 1) == n_obs
+    @test size(dml.all_psi_b, 1) == n_obs
     @test !isempty(dml.fitted_learners_l)
     @test !isempty(dml.fitted_learners_m)
 end

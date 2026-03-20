@@ -42,6 +42,50 @@ for different model types and estimands.
 abstract type AbstractScore end
 
 """
+    AbstractBootstrapMethod
+
+Abstract supertype for bootstrap methods in DoubleML inference.
+
+Supported concrete subtypes:
+- `NormalBootstrap`: Standard Gaussian N(0,1) bootstrap
+- `WildBootstrap`: Mammen's wild bootstrap for heteroskedastic data
+- `BayesBootstrap`: Bayesian bootstrap with Exponential(1) - 1 weights
+
+Use these types with `bootstrap!` for type-stable dispatch, or pass a Symbol
+(`:normal`, `:wild`, `:Bayes`) for backward compatibility.
+"""
+abstract type AbstractBootstrapMethod end
+
+"""
+    NormalBootstrap <: AbstractBootstrapMethod
+
+Standard Gaussian multiplier bootstrap.
+
+Draws bootstrap weights from N(0, 1), suitable for homoskedastic settings.
+"""
+struct NormalBootstrap <: AbstractBootstrapMethod end
+
+"""
+    WildBootstrap <: AbstractBootstrapMethod
+
+Mammen's wild bootstrap for heteroskedastic data.
+
+Uses a two-point distribution: ξ ∼ X/√2 + (X² - 1)/2 where X ∼ N(0,1).
+Provides better coverage under heteroskedasticity.
+"""
+struct WildBootstrap <: AbstractBootstrapMethod end
+
+"""
+    BayesBootstrap <: AbstractBootstrapMethod
+
+Bayesian bootstrap with Exponential weights.
+
+Draws bootstrap weights as Exp(1) - 1, which corresponds to a Dirichlet(1,...,1)
+prior on the probability weights.
+"""
+struct BayesBootstrap <: AbstractBootstrapMethod end
+
+"""
     AbstractDoubleML{T<:AbstractFloat}
 
 Abstract base type for Double Machine Learning models.
@@ -113,12 +157,12 @@ Implements: Y = ``\\theta``·D + g(X) + ε
 - `se::T`: Standard error
 - `all_coef::Vector{T}`: Coefficient estimates for each repetition
 - `all_se::Vector{T}`: Standard errors for each repetition
-- `psi::Vector{T}`: Influence function values
-- `psi_a::Vector{T}`: Score coefficient component
-- `psi_b::Vector{T}`: Score constant component
+- `all_psi::Matrix{T}`: Influence function values (n_obs × n_rep)
+- `all_psi_a::Matrix{T}`: Score coefficient component (n_obs × n_rep)
+- `all_psi_b::Matrix{T}`: Score constant component (n_obs × n_rep)
 - `has_bootstrapped::Bool`: Whether bootstrap has been performed
-- `boot_t_stat::Matrix{T}`: Bootstrap t-statistics
-- `boot_method::Union{Symbol, Nothing}`: Bootstrap method used
+- `boot_t_stat::Array{T, 3}`: Bootstrap t-statistics (n_rep_boot × n_coefs × n_rep)
+- `boot_method::Union{AbstractBootstrapMethod, Symbol, Nothing}`: Bootstrap method used
 - `n_rep_boot::Int`: Number of bootstrap replications
 - `fitted_learners_l::Vector{MLJ.Machine}`: Fitted machines for ml_l
 - `fitted_learners_m::Vector{MLJ.Machine}`: Fitted machines for ml_m
@@ -140,13 +184,13 @@ mutable struct DoubleMLPLR{T <: AbstractFloat, L <: Supervised, M <: Supervised,
     se::T
     all_coef::Vector{T}
     all_se::Vector{T}
-    psi::Vector{T}
-    psi_a::Vector{T}
-    psi_b::Vector{T}
+    all_psi::Matrix{T}
+    all_psi_a::Matrix{T}
+    all_psi_b::Matrix{T}
 
     has_bootstrapped::Bool
-    boot_t_stat::Matrix{T}
-    boot_method::Union{Symbol, Nothing}
+    boot_t_stat::Array{T, 3}
+    boot_method::Union{AbstractBootstrapMethod, Symbol, Nothing}
     n_rep_boot::Int
 
     fitted_learners_l::Vector{MLJ.Machine}
@@ -182,12 +226,12 @@ Implements: Y = g_0(D, X) + ``\\zeta``, where D is binary.
 - `se::T`: Standard error
 - `all_coef::Vector{T}`: Coefficient estimates for each repetition
 - `all_se::Vector{T}`: Standard errors for each repetition
-- `psi::Vector{T}`: Influence function values
-- `psi_a::Vector{T}`: Score coefficient component
-- `psi_b::Vector{T}`: Score constant component
+- `all_psi::Matrix{T}`: Influence function values (n_obs × n_rep)
+- `all_psi_a::Matrix{T}`: Score coefficient component (n_obs × n_rep)
+- `all_psi_b::Matrix{T}`: Score constant component (n_obs × n_rep)
 - `has_bootstrapped::Bool`: Whether bootstrap has been performed
-- `boot_t_stat::Matrix{T}`: Bootstrap t-statistics
-- `boot_method::Union{Symbol, Nothing}`: Bootstrap method used
+- `boot_t_stat::Array{T, 3}`: Bootstrap t-statistics (n_rep_boot × n_coefs × n_rep)
+- `boot_method::Union{AbstractBootstrapMethod, Symbol, Nothing}`: Bootstrap method used
 - `n_rep_boot::Int`: Number of bootstrap replications
 - `fitted_learners_g0::Vector{MLJ.Machine}`: Fitted machines for control group (D=0)
 - `fitted_learners_g1::Vector{MLJ.Machine}`: Fitted machines for treated group (D=1)
@@ -210,13 +254,13 @@ mutable struct DoubleMLIRM{T <: AbstractFloat, G <: Supervised, M <: Supervised}
     se::T
     all_coef::Vector{T}
     all_se::Vector{T}
-    psi::Vector{T}
-    psi_a::Vector{T}
-    psi_b::Vector{T}
+    all_psi::Matrix{T}
+    all_psi_a::Matrix{T}
+    all_psi_b::Matrix{T}
 
     has_bootstrapped::Bool
-    boot_t_stat::Matrix{T}
-    boot_method::Union{Symbol, Nothing}
+    boot_t_stat::Array{T, 3}
+    boot_method::Union{AbstractBootstrapMethod, Symbol, Nothing}
     n_rep_boot::Int
 
     fitted_learners_g0::Vector{MLJ.Machine}
@@ -257,12 +301,12 @@ Implements: E[Y | D, X] = expit{β_0·D + r_0(X)} where Y ∈ {0, 1}
 - `all_coef::Vector{T}`: Coefficient estimates for each repetition
 - `all_se::Vector{T}`: Standard errors for each repetition
 - `coef_start_val::T`: Preliminary estimate used as starting value
-- `psi::Vector{T}`: Influence function values
-- `psi_a::Vector{T}`: Derivative of score (for SE computation)
-- `psi_b::Vector{T}`: Score values at estimated coefficient
+- `all_psi::Matrix{T}`: Influence function values (n_obs × n_rep)
+- `all_psi_a::Matrix{T}`: Derivative of score (n_obs × n_rep)
+- `all_psi_b::Matrix{T}`: Score values at estimated coefficient (n_obs × n_rep)
 - `has_bootstrapped::Bool`: Whether bootstrap has been performed
-- `boot_t_stat::Matrix{T}`: Bootstrap t-statistics
-- `boot_method::Union{Symbol, Nothing}`: Bootstrap method used
+- `boot_t_stat::Array{T, 3}`: Bootstrap t-statistics (n_rep_boot × n_coefs × n_rep)
+- `boot_method::Union{AbstractBootstrapMethod, Symbol, Nothing}`: Bootstrap method used
 - `n_rep_boot::Int`: Number of bootstrap replications
 - `fitted_learners_M::Vector{MLJ.Machine}`: Fitted machines for ml_M
 - `fitted_learners_t::Vector{MLJ.Machine}`: Fitted machines for ml_t
@@ -294,13 +338,13 @@ mutable struct DoubleMLLPLR{
     all_coef::Vector{T}
     all_se::Vector{T}
     coef_start_val::T
-    psi::Vector{T}
-    psi_a::Vector{T}
-    psi_b::Vector{T}
+    all_psi::Matrix{T}
+    all_psi_a::Matrix{T}
+    all_psi_b::Matrix{T}
 
     has_bootstrapped::Bool
-    boot_t_stat::Matrix{T}
-    boot_method::Union{Symbol, Nothing}
+    boot_t_stat::Array{T, 3}
+    boot_method::Union{AbstractBootstrapMethod, Symbol, Nothing}
     n_rep_boot::Int
 
     fitted_learners_M::Vector{MLJ.Machine}

@@ -114,8 +114,8 @@ function DoubleMLLPLR(
     return DoubleMLLPLR{T, M, Tt, Mm, Ma_actual}(
         data, ml_M, ml_t, ml_m, ml_a_actual, n_folds, n_folds_inner, n_rep,
         score_obj, n_folds_tune, T(NaN), T(NaN), zeros(T, n_rep), zeros(T, n_rep), T(NaN),
-        zeros(T, n_obs), zeros(T, n_obs), zeros(T, n_obs),
-        false, zeros(T, 0, 1), nothing, 0,
+        zeros(T, n_obs, n_rep), zeros(T, n_obs, n_rep), zeros(T, n_obs, n_rep),
+        false, zeros(T, 0, 0, 0), nothing, 0,
         MLJ.Machine[], MLJ.Machine[], MLJ.Machine[], MLJ.Machine[],
         (;)
     )
@@ -358,10 +358,18 @@ function MLJ.fit!(
     # Aggregate across repetitions using median-based aggregation
     obj.coef, obj.se = _aggregate_coefs_and_ses(obj.all_coef, obj.all_se)
 
-    # Store final psi from last repetition (for bootstrap compatibility)
-    obj.psi .= @. (all_psi_a[end] * obj.coef) + (all_psi[end] - all_psi_a[end] * obj.all_coef[end])
-    obj.psi_a .= all_psi_a[end]
-    obj.psi_b .= all_psi[end]
+    # Store all psi components as matrices (n_obs × n_rep)
+    # For LPLR with nonlinear scores:
+    # - all_psi stores ψ(θ_r) (score at per-rep coefficient)
+    # - all_psi_a stores dψ/dθ|_θ_r (derivative at per-rep coefficient)
+    # - all_psi_b is computed as ψ(θ_r) - dψ/dθ * θ_r (offset for linearization)
+    obj.all_psi = hcat(all_psi...)
+    obj.all_psi_a = hcat(all_psi_a...)
+
+    # Compute all_psi_b for bootstrap linearization
+    for r in 1:obj.n_rep
+        obj.all_psi_b[:, r] = @. obj.all_psi[:, r] - obj.all_psi_a[:, r] * obj.all_coef[r]
+    end
 
     if verbose > 0
         @info "Done! Coefficient: $(round(obj.coef, digits = 4)), SE: $(round(obj.se, digits = 4))"

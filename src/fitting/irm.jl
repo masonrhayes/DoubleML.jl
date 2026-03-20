@@ -144,8 +144,9 @@ function DoubleMLIRM(
 
     return DoubleMLIRM{T, G, M}(
         data, ml_g, ml_m, n_folds, n_rep, score_obj, normalize_ipw, ct, n_folds_tune,
-        T(NaN), T(NaN), zeros(T, n_rep), zeros(T, n_rep), zeros(T, n_obs), zeros(T, n_obs), zeros(T, n_obs),
-        false, zeros(T, 0, 1), nothing, 0,
+        T(NaN), T(NaN), zeros(T, n_rep), zeros(T, n_rep),
+        zeros(T, n_obs, n_rep), zeros(T, n_obs, n_rep), zeros(T, n_obs, n_rep),
+        false, zeros(T, 0, 0, 0), nothing, 0,
         MLJ.Machine[], MLJ.Machine[], MLJ.Machine[],
         (;)
     )
@@ -320,10 +321,14 @@ function MLJ.fit!(obj::DoubleMLIRM{T}; verbose::Int = 0, force::Bool = false) wh
     # Aggregate across repetitions using median-based aggregation
     obj.coef, obj.se = _aggregate_coefs_and_ses(obj.all_coef, obj.all_se)
 
-    # Store final psi from last repetition (for bootstrap compatibility)
-    obj.psi .= @. (all_psi_a[end] * obj.coef) + all_psi_b[end]
-    obj.psi_a .= all_psi_a[end]
-    obj.psi_b .= all_psi_b[end]
+    # Store all psi components as matrices (n_obs × n_rep)
+    obj.all_psi_a = hcat(all_psi_a...)
+    obj.all_psi_b = hcat(all_psi_b...)
+
+    # Compute psi at per-repetition coefficient
+    for r in 1:obj.n_rep
+        obj.all_psi[:, r] = @. obj.all_psi_a[:, r] * obj.all_coef[r] + obj.all_psi_b[:, r]
+    end
 
     if obj.score_obj isa ATEScore
         obj.learner_performance = (
