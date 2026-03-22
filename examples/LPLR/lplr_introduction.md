@@ -25,8 +25,8 @@
 <!--
     # This information is used for caching.
     [PlutoStaticHTML.State]
-    input_sha = "f9b7fffec6565f3c6d1cb86014d4eb83961e2cffc757605983b4d33d00be878a"
-    julia_version = "1.12.4"
+    input_sha = "ca9e4eff3637e7fcf6a64d3e280227ee6a8d5d05040871e85e09fb074de899e9"
+    julia_version = "1.12.5"
 -->
 
 
@@ -110,9 +110,9 @@ end</code></pre>
 
 <pre class='language-julia'><code class='language-julia'>begin
     # Simple LPLR with RandomForest
-    ml_M = RandomForestClassifier()
-    ml_t = RandomForestRegressor()
-    ml_m = RandomForestRegressor()
+    ml_M = RandomForestClassifier(rng = StableRNG(42))
+    ml_t = RandomForestRegressor(rng = StableRNG(42))
+    ml_m = RandomForestRegressor(rng = StableRNG(42))
 
     dml_lplr_simple = DoubleML.DoubleMLLPLR(data_lplr, ml_M, ml_t, ml_m, score = :nuisance_space)
 
@@ -121,13 +121,13 @@ end</code></pre>
 end</code></pre>
 <pre class="code-output documenter-example-output" id="var-ml_t">DoubleMLLPLR{Float32, MLJDecisionTreeInterface.RandomForestClassifier, MLJDecisionTreeInterface.RandomForestRegressor, MLJDecisionTreeInterface.RandomForestRegressor, MLJDecisionTreeInterface.RandomForestRegressor}
 ==========================
-StatsBase.CoefTable(Any[[0.5600261688232422], [0.07653645426034927], [7.317116737365723], [2.533554434762229e-13], [0.41001747496856017], [0.7100348626779243]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
+StatsBase.CoefTable(Any[[0.6428287029266357], [0.07906712591648102], [8.13016414642334], [4.287095063435412e-16], [0.4878599837692391], [0.7977974220840324]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
 
 <pre class='language-julia'><code class='language-julia'>coeftable(dml_lplr_simple)</code></pre>
 <pre class="code-output documenter-example-output" id="var-hash360715">────────────────────────────────────────────────────────────────────
    Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
 ────────────────────────────────────────────────────────────────────
-d  0.560026   0.0765365     7.32    &lt;1e-12     0.410017     0.710035
+d  0.642829   0.0790671     8.13    &lt;1e-15      0.48786     0.797797
 ────────────────────────────────────────────────────────────────────</pre>
 
 
@@ -142,7 +142,7 @@ d  0.560026   0.0765365     7.32    &lt;1e-12     0.410017     0.710035
     ]
 
     ml_M_iterated = IteratedModel(
-        EvoTreeClassifier(max_depth = 4, eta = 0.01),
+        EvoTreeClassifier(max_depth = 4, eta = 0.01, seed = 42),
         resampling = Holdout(),
         measure = cross_entropy,
         iteration_parameter = :nrounds,
@@ -150,7 +150,7 @@ d  0.560026   0.0765365     7.32    &lt;1e-12     0.410017     0.710035
     )
 
     ml_t_iterated = IteratedModel(
-        EvoTreeRegressor(max_depth = 4, eta = 0.01),
+        EvoTreeRegressor(max_depth = 4, eta = 0.01, seed = 42),
         resampling = Holdout(),
         measure = mav,
         iteration_parameter = :nrounds,
@@ -158,7 +158,7 @@ d  0.560026   0.0765365     7.32    &lt;1e-12     0.410017     0.710035
     )
 
     ml_m_iterated = IteratedModel(
-        EvoTreeRegressor(max_depth = 4, eta = 0.01),
+        EvoTreeRegressor(max_depth = 4, eta = 0.01, seed = 42),
         resampling = Holdout(),
         measure = mae,
         iteration_parameter = :nrounds,
@@ -175,13 +175,13 @@ d  0.560026   0.0765365     7.32    &lt;1e-12     0.410017     0.710035
 end</code></pre>
 <pre class="code-output documenter-example-output" id="var-controls">DoubleMLLPLR{Float32, MLJIteration.ProbabilisticIteratedModel{EvoTrees.EvoTreeClassifier}, MLJIteration.DeterministicIteratedModel{EvoTrees.EvoTreeRegressor}, MLJIteration.DeterministicIteratedModel{EvoTrees.EvoTreeRegressor}, MLJIteration.DeterministicIteratedModel{EvoTrees.EvoTreeRegressor}}
 ==========================
-StatsBase.CoefTable(Any[[0.5177592039108276], [0.06866498291492462], [7.540367603302002], [4.6864848860054194e-14], [0.383178310398517], [0.6523400974231383]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
+StatsBase.CoefTable(Any[[0.5199088454246521], [0.06972870975732803], [7.4561662673950195], [8.907632519442821e-14], [0.3832430856118423], [0.6565746052374619]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
 
 <pre class='language-julia'><code class='language-julia'>coeftable(dml_lplr_iterated)</code></pre>
 <pre class="code-output documenter-example-output" id="var-hash950978">────────────────────────────────────────────────────────────────────
    Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
 ────────────────────────────────────────────────────────────────────
-d  0.517759    0.068665     7.54    &lt;1e-13     0.383178      0.65234
+d  0.519909   0.0697287     7.46    &lt;1e-13     0.383243     0.656575
 ────────────────────────────────────────────────────────────────────</pre>
 
 <!-- PlutoStaticHTML.End -->

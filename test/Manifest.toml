@@ -2,7 +2,7 @@
 
 julia_version = "1.12.5"
 manifest_format = "2.0"
-project_hash = "a463a243e4dbb306497ff03b44375a7985d95f70"
+project_hash = "7d696427e34713a85ce0ee6775729a2da2aa4172"
 
 [[deps.ADTypes]]
 git-tree-sha1 = "f7304359109c768cf32dc5fa2d371565bb63b68a"
@@ -569,6 +569,17 @@ version = "0.7.16"
     Tracker = "9f7883ad-71c0-57eb-9f7f-b5c9e6d3789c"
     Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
+[[deps.DispatchDoctor]]
+deps = ["MacroTools", "Preferences"]
+git-tree-sha1 = "42cd00edaac86f941815fe557c1d01e11913e07c"
+uuid = "8d63f2c5-f18a-4cf2-ba9d-b3f60fc568c8"
+version = "0.4.28"
+weakdeps = ["ChainRulesCore", "EnzymeCore"]
+
+    [deps.DispatchDoctor.extensions]
+    DispatchDoctorChainRulesCoreExt = "ChainRulesCore"
+    DispatchDoctorEnzymeCoreExt = "EnzymeCore"
+
 [[deps.Distances]]
 deps = ["LinearAlgebra", "Statistics", "StatsAPI"]
 git-tree-sha1 = "c7e3a542b999843086e2f29dac96a618c105be1d"
@@ -607,15 +618,67 @@ uuid = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 version = "0.9.5"
 
 [[deps.DoubleML]]
-deps = ["CategoricalArrays", "ConformalPrediction", "DataFrames", "Distributions", "JET", "LinearAlgebra", "MLJ", "MLJBase", "PrettyTables", "Printf", "Random", "Reexport", "Roots", "ScientificTypes", "StableRNGs", "Statistics", "StatsAPI", "StatsBase", "StatsFuns"]
+deps = ["CategoricalArrays", "DataFrames", "Distributions", "JET", "LinearAlgebra", "MLJ", "MLJBase", "PrettyTables", "Printf", "Random", "Reexport", "Roots", "ScientificTypes", "StableRNGs", "Statistics", "StatsAPI", "StatsBase", "StatsFuns"]
 path = ".."
 uuid = "77251493-8087-46d5-be33-49d84ce818f6"
 version = "0.1.0"
+weakdeps = ["ConformalPrediction"]
+
+    [deps.DoubleML.extensions]
+    DoubleMLConformalExt = "ConformalPrediction"
 
 [[deps.Downloads]]
 deps = ["ArgTools", "FileWatching", "LibCURL", "NetworkOptions"]
 uuid = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
 version = "1.7.0"
+
+[[deps.DynamicDiff]]
+deps = ["Compat", "DispatchDoctor", "DynamicExpressions", "ForwardDiff"]
+git-tree-sha1 = "fc058cee42edd2880ee1cb1d8eba753924c65363"
+uuid = "7317a516-7a03-4707-b902-c6dba1468ba0"
+version = "0.2.1"
+
+[[deps.DynamicExpressions]]
+deps = ["ChainRulesCore", "DispatchDoctor", "Interfaces", "MacroTools", "PrecompileTools", "Random", "Reexport", "TOML"]
+git-tree-sha1 = "fa33707c2415bcff95fa12a39bbb3de526b8281e"
+uuid = "a40a106e-89c9-4ca8-8020-a735e8728b6b"
+version = "1.10.4"
+
+    [deps.DynamicExpressions.extensions]
+    DynamicExpressionsBumperExt = "Bumper"
+    DynamicExpressionsLoopVectorizationExt = "LoopVectorization"
+    DynamicExpressionsOptimExt = "Optim"
+    DynamicExpressionsSymbolicUtilsExt = "SymbolicUtils"
+    DynamicExpressionsZygoteExt = "Zygote"
+
+    [deps.DynamicExpressions.weakdeps]
+    Bumper = "8ce10254-0962-460f-a3d8-1f77fea1446e"
+    LoopVectorization = "bdcacae8-1622-11e9-2a5c-532679323890"
+    Optim = "429524aa-4258-5aef-a3af-852621145aeb"
+    SymbolicUtils = "d1185830-fcd6-423d-90d6-eec64667417b"
+    Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
+
+[[deps.DynamicQuantities]]
+deps = ["DispatchDoctor", "PrecompileTools", "TestItems", "Tricks"]
+git-tree-sha1 = "e936fd0c351b282f0cb725705bff1f807f213567"
+uuid = "06fc5a27-2a28-4c7c-a15d-362465fb6821"
+version = "1.12.0"
+
+    [deps.DynamicQuantities.extensions]
+    DynamicQuantitiesLinearAlgebraExt = "LinearAlgebra"
+    DynamicQuantitiesMeasurementsExt = "Measurements"
+    DynamicQuantitiesRecursiveArrayToolsExt = "RecursiveArrayTools"
+    DynamicQuantitiesSciMLBaseExt = "SciMLBase"
+    DynamicQuantitiesScientificTypesExt = "ScientificTypes"
+    DynamicQuantitiesUnitfulExt = "Unitful"
+
+    [deps.DynamicQuantities.weakdeps]
+    LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+    Measurements = "eff96d63-e80a-5855-80a2-b1b0885c5ab7"
+    RecursiveArrayTools = "731186ca-8d62-57ce-b412-fbd966d074cd"
+    SciMLBase = "0bca4576-84f4-4d90-8ffe-ffa030f20462"
+    ScientificTypes = "321657f4-b219-11e9-178b-2701a2544e81"
+    Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 
 [[deps.EarCut_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -889,6 +952,11 @@ deps = ["Markdown"]
 uuid = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
 version = "1.11.0"
 
+[[deps.Interfaces]]
+git-tree-sha1 = "331ff37738aea1a3cf841ddf085442f31b84324f"
+uuid = "85a1e053-f937-4924-92a5-1367d23b7b87"
+version = "0.3.2"
+
 [[deps.InverseFunctions]]
 git-tree-sha1 = "a779299d77cd080bf77b97535acecd73e1c5e5cb"
 uuid = "3587e190-3f89-42d0-90ee-14403ec27112"
@@ -1146,6 +1214,16 @@ weakdeps = ["ChainRulesCore", "ForwardDiff", "NNlib", "SpecialFunctions"]
     ForwardDiffExt = ["ChainRulesCore", "ForwardDiff"]
     ForwardDiffNNlibExt = ["ForwardDiff", "NNlib"]
     SpecialFunctionsExt = "SpecialFunctions"
+
+[[deps.LossFunctions]]
+deps = ["Markdown", "Statistics"]
+git-tree-sha1 = "1fd86ac43c8d5e07482396f79bc5a79a39791560"
+uuid = "30fc2ffe-d236-52d8-8643-a9d8f7c094a7"
+version = "1.2.0"
+weakdeps = ["CategoricalArrays"]
+
+    [deps.LossFunctions.extensions]
+    LossFunctionsCategoricalArraysExt = "CategoricalArrays"
 
 [[deps.LoweredCodeUtils]]
 deps = ["CodeTracking", "Compiler", "JuliaInterpreter"]
@@ -1625,9 +1703,9 @@ version = "0.1.6"
 
 [[deps.ProgressMeter]]
 deps = ["Distributed", "Printf"]
-git-tree-sha1 = "fbb92c6c56b34e1a2c4c36058f68f332bec840e7"
+git-tree-sha1 = "8f6bc219586aef8baf0ff9a5fe16ee9c70cb65e4"
 uuid = "92933f4c-e287-5a05-a399-4b506db050ca"
-version = "1.11.0"
+version = "1.10.2"
 
 [[deps.PtrArrays]]
 git-tree-sha1 = "4fbbafbc6251b883f4d2705356f3641f3652a7fe"
@@ -1922,14 +2000,11 @@ deps = ["CategoricalArrays", "CategoricalDistributions", "Distributions", "Learn
 git-tree-sha1 = "0638d603308da3eb6bd16fe2384ecb0b91b8b9c2"
 uuid = "a19d573c-0a75-4610-95b3-7071388c7541"
 version = "0.3.4"
+weakdeps = ["LossFunctions", "ScientificTypes"]
 
     [deps.StatisticalMeasures.extensions]
     LossFunctionsExt = "LossFunctions"
     ScientificTypesExt = "ScientificTypes"
-
-    [deps.StatisticalMeasures.weakdeps]
-    LossFunctions = "30fc2ffe-d236-52d8-8643-a9d8f7c094a7"
-    ScientificTypes = "321657f4-b219-11e9-178b-2701a2544e81"
 
 [[deps.StatisticalMeasuresBase]]
 deps = ["CategoricalArrays", "InteractiveUtils", "MLUtils", "MacroTools", "OrderedCollections", "PrecompileTools", "ScientificTypesBase", "Statistics"]
@@ -2027,6 +2102,22 @@ deps = ["Artifacts", "Libdl", "libblastrampoline_jll"]
 uuid = "bea87d4a-7f5b-5778-9afe-8cc45184846c"
 version = "7.8.3+2"
 
+[[deps.SymbolicRegression]]
+deps = ["ADTypes", "Compat", "ConstructionBase", "Dates", "DifferentiationInterface", "DispatchDoctor", "Distributed", "DynamicDiff", "DynamicExpressions", "DynamicQuantities", "LineSearches", "Logging", "LossFunctions", "MLJModelInterface", "MacroTools", "Optim", "Pkg", "PrecompileTools", "Printf", "ProgressMeter", "Random", "Reexport", "SpecialFunctions", "StatsBase", "StyledStrings", "TOML"]
+git-tree-sha1 = "8416fc174cff3d772d11d9ebc88517d0e41a631e"
+uuid = "8254be44-1295-4e6a-a16d-46603ac705cb"
+version = "1.13.0"
+
+    [deps.SymbolicRegression.extensions]
+    SymbolicRegressionEnzymeExt = "Enzyme"
+    SymbolicRegressionJSON3Ext = "JSON3"
+    SymbolicRegressionSymbolicUtilsExt = "SymbolicUtils"
+
+    [deps.SymbolicRegression.weakdeps]
+    Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9"
+    JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
+    SymbolicUtils = "d1185830-fcd6-423d-90d6-eec64667417b"
+
 [[deps.TOML]]
 deps = ["Dates"]
 uuid = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
@@ -2059,6 +2150,11 @@ version = "1.10.0"
 deps = ["InteractiveUtils", "Logging", "Random", "Serialization"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 version = "1.11.0"
+
+[[deps.TestItems]]
+git-tree-sha1 = "42fd9023fef18b9b78c8343a4e2f3813ffbcefcb"
+uuid = "1c621080-faea-4a02-84b6-bbd5e436b8fe"
+version = "1.0.0"
 
 [[deps.TextWrap]]
 git-tree-sha1 = "43044b737fa70bc12f6105061d3da38f881a3e3c"
@@ -2103,6 +2199,11 @@ deps = ["Compat", "Coverage", "Dates", "Distributions", "DocStringExtensions", "
 git-tree-sha1 = "b8c0e533721714b47bdca5fad03e26beda3c193b"
 uuid = "eb66a70c-a255-11e9-03ea-7ba6b2f22006"
 version = "0.3.4"
+
+[[deps.Tricks]]
+git-tree-sha1 = "311349fd1c93a31f783f977a71e8b062a57d4101"
+uuid = "410a4b4d-49e4-4fbc-ab6d-cb71b17b3775"
+version = "0.1.13"
 
 [[deps.Tullio]]
 deps = ["DiffRules", "LinearAlgebra", "Requires"]

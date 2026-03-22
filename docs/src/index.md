@@ -23,11 +23,12 @@ Why DoubleML.jl?
 
 This package remains in early development and testing stages. The following models are currently implemented:
 
-| Model            | Use Case                    | Learners                                    | Status            |
-| ---------------- | --------------------------- | ------------------------------------------- | ----------------- |
-| `DoubleMLPLR`  | Continuous/binary treatment | `ml_l`, `ml_m` (+ `ml_g` for IV-type) | Implemented       |
-| `DoubleMLIRM`  | Binary treatment only       | `ml_g`, `ml_m` (classifier)             | Implemented       |
-| `DoubleMLLPLR` | Binary outcome (Y ∈ {0,1}) | `ml_M`, `ml_t`, `ml_m` (+ `ml_a`)   | ⚠️ Experimental |
+| Model                    | Use Case                             | Learners                                    | Status            |
+| ------------------------ | ------------------------------------ | ------------------------------------------- | ----------------- |
+| `DoubleMLPLR`          | Continuous/binary treatment          | `ml_l`, `ml_m` (+ `ml_g` for IV-type) | Implemented       |
+| `DoubleMLIRM`          | Binary treatment only                | `ml_g`, `ml_m` (classifier)             | Implemented       |
+| `DoubleMLLPLR`         | Binary outcome (Y ∈ {0,1})          | `ml_M`, `ml_t`, `ml_m` (+ `ml_a`)   | ⚠️ Experimental |
+| `DoubleMLPLRConformal` | Conformal uncertainty quantification | `ml_l`, `ml_m` (conformal-wrapped)      | 🔬 Experimental   |
 
 ## Quick Example
 
@@ -48,6 +49,25 @@ summary(model)
 println("Treatment effect: ", coef(model)[1])
 println("95% CI: ", confint(model))
 ```
+
+## Experimental Features
+
+### Conformal Double Machine Learning (CDML)
+
+This package also implements, as a package extension, a proof-of-concept implementation of Conformal Double Machine Learning (CDML).
+
+CDML uses **conformal prediction** (from [ConformalPrediction.jl](https://github.com/JuliaTrustworthyAI/ConformalPrediction.jl)) for uncertainty quantification. Conformal prediction is a distribution-free approach that provides valid prediction intervals with guaranteed frequentist coverage rates, without assumptions on the data distribution or model specification.
+
+**Key characteristics:**
+
+- Trains on dataset, with one holdout set for validity of conformal predictions (no cross-fitting required)
+- Uses Monte Carlo sampling from conformal intervals to propagate uncertainty
+- Models correlation between nuisance function uncertainties via Gaussian copula
+- Requires conformal-wrapped MLJ models from `ConformalPrediction.jl`
+
+**Status:** Experimental - API may change. Not recommended to use except for research/testing purposes.
+
+See documentation for usage details.
 
 ## Documentation
 

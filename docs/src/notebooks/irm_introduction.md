@@ -25,8 +25,8 @@
 <!--
     # This information is used for caching.
     [PlutoStaticHTML.State]
-    input_sha = "c9d076d91c6b798400b2961e074a2a319a5e3424172f0082454266e17884fb28"
-    julia_version = "1.12.4"
+    input_sha = "6771e0a97536fd67dd4b1881f10505ed837d32ddd15b1d3a6c1751d68bb0cb59"
+    julia_version = "1.12.5"
 -->
 
 
@@ -62,7 +62,7 @@ end</code></pre>
 
 <pre class='language-julia'><code class='language-julia'># IRM Data
 data_irm = DoubleML.make_irm_data(1000, theta = 0.5, dim_x = 100, rng = StableRNG(42))</code></pre>
-<pre class="code-output documenter-example-output" id="var-data_irm">DoubleMLData{Float32, CategoricalArrays.CategoricalVector{Float32, UInt32, Float32, CategoricalArrays.CategoricalValue{Float32, UInt32}, Union{}}}(Float32[-0.6748344, 0.3039633, 0.6760439, 1.4083221, -0.8368299, -0.61595523, 3.0014334, -0.036194555, 1.864324, -0.28150964  …  0.8323356, -1.2143124, -1.2397234, -1.3907428, -0.14038181, 2.120363, -1.8365414, -0.623508, 1.898227, 1.4702643], CategoricalArrays.CategoricalValue{Float32, UInt32}[0.0f0, 0.0f0, 0.0f0, 0.0f0, 1.0f0, 1.0f0, 1.0f0, 0.0f0, 1.0f0, 0.0f0  …  1.0f0, 0.0f0, 0.0f0, 0.0f0, 1.0f0, 1.0f0, 1.0f0, 0.0f0, 0.0f0, 0.0f0], Float32[-0.8857411 -0.54276526 … -0.4588549 0.062866904; -0.9109771 -0.48209068 … -0.4358175 1.0236975; … ; -0.8479842 -1.4113976 … 0.59593326 0.031701036; -0.9461808 -1.1490784 … -1.3875467 -1.6245216], 1000, 100, :y, :d, [:X1, :X2, :X3, :X4, :X5, :X6, :X7, :X8, :X9, :X10  …  :X91, :X92, :X93, :X94, :X95, :X96, :X97, :X98, :X99, :X100])</pre>
+<pre class="code-output documenter-example-output" id="var-data_irm">DoubleMLData{Float32, CategoricalArrays.CategoricalVector{Float32, UInt32, Float32, CategoricalArrays.CategoricalValue{Float32, UInt32}, Union{}}}(Float32[-0.6748344, 0.3039633, 0.6760439, 1.4083221, -0.8368299, -0.61595523, 3.0014334, -0.036194555, 1.864324, -0.28150964  …  0.8323356, -1.2143124, -1.2397234, -1.3907428, -0.14038181, 2.120363, -1.8365414, -0.623508, 1.898227, 1.4702643], CategoricalArrays.CategoricalValue{Float32, UInt32}[CategoricalValue(CategoricalArrays.CategoricalPool{Float32, UInt32}([0.0f0, 1.0f0]), 1), CategoricalValue(CategoricalArrays.CategoricalPool{Float32, UInt32}([0.0f0, 1.0f0]), 1), CategoricalValue(CategoricalArrays.CategoricalPool{Float32, UInt32}([0.0f0, 1.0f0]), 1), CategoricalValue(CategoricalArrays.CategoricalPool{Float32, UInt32}([0.0f0, 1.0f0]), 1), CategoricalValue(CategoricalArrays.CategoricalPool{Float32, UInt32}([0.0f0, 1.0f0]), 2), CategoricalValue(CategoricalArrays.CategoricalPool{Float32, UInt32}([0.0f0, 1.0f0]), 2), CategoricalValue(CategoricalArrays.CategoricalPool{Float32, UInt32}([0.0f0, 1.0f0]), 2), CategoricalValue(CategoricalArrays.CategoricalPool{Float32, UInt32}([0.0f0, 1.0f0]), 1), CategoricalValue(CategoricalArrays.CategoricalPool{Float32, UInt32}([0.0f0, 1.0f0]), 2), CategoricalValue(CategoricalArrays.CategoricalPool{Float32, UInt32}([0.0f0, 1.0f0]), 1)  …  CategoricalValue(CategoricalArrays.CategoricalPool{Float32, UInt32}([0.0f0, 1.0f0]), 2), CategoricalValue(CategoricalArrays.CategoricalPool{Float32, UInt32}([0.0f0, 1.0f0]), 1), CategoricalValue(CategoricalArrays.CategoricalPool{Float32, UInt32}([0.0f0, 1.0f0]), 1), CategoricalValue(CategoricalArrays.CategoricalPool{Float32, UInt32}([0.0f0, 1.0f0]), 1), CategoricalValue(CategoricalArrays.CategoricalPool{Float32, UInt32}([0.0f0, 1.0f0]), 2), CategoricalValue(CategoricalArrays.CategoricalPool{Float32, UInt32}([0.0f0, 1.0f0]), 2), CategoricalValue(CategoricalArrays.CategoricalPool{Float32, UInt32}([0.0f0, 1.0f0]), 2), CategoricalValue(CategoricalArrays.CategoricalPool{Float32, UInt32}([0.0f0, 1.0f0]), 1), CategoricalValue(CategoricalArrays.CategoricalPool{Float32, UInt32}([0.0f0, 1.0f0]), 1), CategoricalValue(CategoricalArrays.CategoricalPool{Float32, UInt32}([0.0f0, 1.0f0]), 1)], Float32[-0.8857411 -0.54276526 … -0.4588549 0.062866904; -0.9109771 -0.48209068 … -0.4358175 1.0236975; … ; -0.8479842 -1.4113976 … 0.59593326 0.031701036; -0.9461808 -1.1490784 … -1.3875467 -1.6245216], 1000, 100, :y, :d, [:X1, :X2, :X3, :X4, :X5, :X6, :X7, :X8, :X9, :X10  …  :X91, :X92, :X93, :X94, :X95, :X96, :X97, :X98, :X99, :X100])</pre>
 
 
 <div class="markdown"><p>View what models are available for our data</p></div>
@@ -110,8 +110,8 @@ end</code></pre>
 
 <pre class='language-julia'><code class='language-julia'>begin
     # Simple IRM with RandomForest
-    ml_g = RandomForestRegressor()
-    ml_m = RandomForestClassifier()
+    ml_g = RandomForestRegressor(rng = StableRNG(42))
+    ml_m = RandomForestClassifier(rng = StableRNG(42))
 
     dml_irm_simple = DoubleML.DoubleMLIRM(data_irm, ml_g, ml_m, score = :ATE)
 
@@ -119,13 +119,13 @@ end</code></pre>
 end</code></pre>
 <pre class="code-output documenter-example-output" id="var-dml_irm_simple">DoubleMLIRM{Float32, MLJDecisionTreeInterface.RandomForestRegressor, MLJDecisionTreeInterface.RandomForestClassifier}
 ==========================
-StatsBase.CoefTable(Any[[0.9024531841278076], [0.05553073063492775], [16.251419067382812], [2.1825347215342706e-59], [0.793614952048154], [1.0112914162074613]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
+StatsBase.CoefTable(Any[[0.9093611836433411], [0.055683430284261703], [16.33091163635254], [5.948874387636241e-60], [0.8002236657505409], [1.018498701536141]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
 
 <pre class='language-julia'><code class='language-julia'>coeftable(dml_irm_simple)</code></pre>
 <pre class="code-output documenter-example-output" id="var-hash845485">────────────────────────────────────────────────────────────────────
    Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
 ────────────────────────────────────────────────────────────────────
-d  0.902453   0.0555307    16.25    &lt;1e-58     0.793615      1.01129
+d  0.909361   0.0556834    16.33    &lt;1e-59     0.800224       1.0185
 ────────────────────────────────────────────────────────────────────</pre>
 
 
@@ -135,11 +135,11 @@ d  0.902453   0.0555307    16.25    &lt;1e-58     0.793615      1.01129
     # IRM with TreeParzen hyperparameter tuning
 
     space = Dict(
-        :max_depth =&gt; HP.QuantUniform(:max_depth, 3.0, 8.0, 1.0)
+        :max_depth =&gt; HP.QuantUniform(:max_depth, 2.0, 8.0, 1.0)
     )
 
     tuned_ml_g = TunedModel(
-        model = EvoTreeRegressor(),
+        model = EvoTreeRegressor(seed = 42),
         tuning = MLJTreeParzenTuning(),
         resampling = Holdout(),
         range = space,
@@ -148,7 +148,7 @@ d  0.902453   0.0555307    16.25    &lt;1e-58     0.793615      1.01129
     )
 
     tuned_ml_m = TunedModel(
-        model = EvoTreeClassifier(),
+        model = EvoTreeClassifier(seed = 42),
         tuning = MLJTreeParzenTuning(),
         resampling = Holdout(),
         range = space,
@@ -159,18 +159,18 @@ d  0.902453   0.0555307    16.25    &lt;1e-58     0.793615      1.01129
 
     dml_irm = DoubleML.DoubleMLIRM(data_irm, tuned_ml_g, tuned_ml_m)
 
-    fit!(dml_irm, verbose = 1)
+    fit!(dml_irm, verbose = 0)
 
 end</code></pre>
 <pre class="code-output documenter-example-output" id="var-tuned_ml_m">DoubleMLIRM{Float32, MLJTuning.DeterministicTunedModel{MLJTreeParzenTuning, EvoTrees.EvoTreeRegressor, Nothing}, MLJTuning.ProbabilisticTunedModel{MLJTreeParzenTuning, EvoTrees.EvoTreeClassifier, Nothing}}
 ==========================
-StatsBase.CoefTable(Any[[0.8105318546295166], [0.10225623100996017], [7.926478862762451], [2.25446995301935e-15], [0.6101133246551864], [1.0109503846038468]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
+StatsBase.CoefTable(Any[[0.7141482830047607], [0.05785326659679413], [12.344130516052246], [5.239723911948737e-35], [0.60075796408705], [0.8275386019224715]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
 
 <pre class='language-julia'><code class='language-julia'>coeftable(dml_irm)</code></pre>
 <pre class="code-output documenter-example-output" id="var-hash997185">────────────────────────────────────────────────────────────────────
    Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
 ────────────────────────────────────────────────────────────────────
-d  0.810532    0.102256     7.93    &lt;1e-14     0.610113      1.01095
+d  0.714148   0.0578533    12.34    &lt;1e-34     0.600758     0.827539
 ────────────────────────────────────────────────────────────────────</pre>
 
 <!-- PlutoStaticHTML.End -->
