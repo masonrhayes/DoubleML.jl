@@ -90,13 +90,13 @@ end</code></pre>
 end</code></pre>
 <pre class="code-output documenter-example-output" id="var-ml_m">DoubleMLPLR{Float32, MLJDecisionTreeInterface.RandomForestRegressor, MLJDecisionTreeInterface.RandomForestRegressor, Nothing}
 ==========================
-StatsBase.CoefTable(Any[[0.49368950724601746], [0.030168181285262108], [16.36457633972168], [3.42402210204375e-60], [0.4345609584478283], [0.5528180560442065]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
+StatsBase.CoefTable(Any[[0.5010733008384705], [0.030461784452199936], [16.449243545532227], [8.492224347365896e-61], [0.4413693004073363], [0.5607773012696047]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
 
 <pre class='language-julia'><code class='language-julia'>coeftable(dml_plr_simple)</code></pre>
 <pre class="code-output documenter-example-output" id="var-hash142443">────────────────────────────────────────────────────────────────────
    Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
 ────────────────────────────────────────────────────────────────────
-d   0.49369   0.0301682    16.36    &lt;1e-59     0.434561     0.552818
+d  0.501073   0.0304618    16.45    &lt;1e-60     0.441369     0.560777
 ────────────────────────────────────────────────────────────────────</pre>
 
 
@@ -142,13 +142,13 @@ d   0.49369   0.0301682    16.36    &lt;1e-59     0.434561     0.552818
 end</code></pre>
 <pre class="code-output documenter-example-output" id="var-tuned_ml_m">DoubleMLPLR{Float32, MLJTuning.DeterministicTunedModel{MLJTreeParzenTuning, MLJDecisionTreeInterface.RandomForestRegressor, Nothing}, MLJTuning.DeterministicTunedModel{MLJTreeParzenTuning, MLJDecisionTreeInterface.RandomForestRegressor, Nothing}, Nothing}
 ==========================
-StatsBase.CoefTable(Any[[0.5076899528503418], [0.030132316052913666], [16.84868621826172], [1.0727130928244417e-63], [0.4486316986158528], [0.5667482070848308]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
+StatsBase.CoefTable(Any[[0.498350590467453], [0.029623204842209816], [16.822980880737305], [1.65612089763161e-63], [0.44029017587006913], [0.5564110050648369]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
 
 <pre class='language-julia'><code class='language-julia'>coeftable(dml_plr)</code></pre>
 <pre class="code-output documenter-example-output" id="var-hash110135">────────────────────────────────────────────────────────────────────
    Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
 ────────────────────────────────────────────────────────────────────
-d   0.50769   0.0301323    16.85    &lt;1e-62     0.448632     0.566748
+d  0.498351   0.0296232    16.82    &lt;1e-62      0.44029     0.556411
 ────────────────────────────────────────────────────────────────────</pre>
 
 
@@ -191,16 +191,16 @@ end
 </code></pre>
 <pre class="code-output documenter-example-output" id="var-controls">DoubleMLPLR{Float32, MLJIteration.DeterministicIteratedModel{EvoTrees.EvoTreeRegressor}, MLJIteration.DeterministicIteratedModel{EvoTrees.EvoTreeRegressor}, Nothing}
 ==========================
-StatsBase.CoefTable(Any[[0.4609728455543518], [0.03269224613904953], [14.100372314453125], [3.777713727711199e-45], [0.39689722054809595], [0.5250484705606077]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
+StatsBase.CoefTable(Any[[0.46329057216644287], [0.03177201375365257], [14.581718444824219], [3.6715690314530225e-48], [0.40101856949297243], [0.5255625748399133]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
 
 <pre class='language-julia'><code class='language-julia'>coeftable(dml_plr_iterated)</code></pre>
 <pre class="code-output documenter-example-output" id="var-hash219819">────────────────────────────────────────────────────────────────────
    Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
 ────────────────────────────────────────────────────────────────────
-d  0.460973   0.0326922    14.10    &lt;1e-44     0.396897     0.525048
+d  0.463291    0.031772    14.58    &lt;1e-47     0.401019     0.525563
 ────────────────────────────────────────────────────────────────────</pre>
 
 <pre class='language-julia'><code class='language-julia'>summary(dml_plr_iterated)</code></pre>
 
 
-<!-- PlutoStaticHTML.End --></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../examples/">« Overview</a><a class="docs-footer-nextpage" href="../lplr_introduction/">LPLR Introduction »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Tuesday 3 March 2026 21:53">Tuesday 3 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+<!-- PlutoStaticHTML.End --></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../examples/">« Overview</a><a class="docs-footer-nextpage" href="../lplr_introduction/">LPLR Introduction »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Sunday 22 March 2026 18:23">Sunday 22 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
