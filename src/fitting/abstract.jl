@@ -49,13 +49,20 @@ Compute confidence intervals for the estimated coefficient(s).
 # Arguments
 - `obj`: Fitted DoubleML model
 - `joint::Bool=false`: If true, compute joint confidence intervals (requires bootstrap)
-- `level::Real=0.95`: Confidence level (default 95%)
+- `level::Real=0.95`: Confidence level (default 95%), must be in (0, 1)
 
 # Returns
 A matrix with two columns: lower and upper bounds of the confidence interval.
+
+# Throws
+- `DomainError` if `level <= 0` or `level >= 1`
 """
 function StatsAPI.confint(obj::AbstractDoubleML; joint::Bool = false, level::Real = 0.95)
     !isfitted(obj) && error("Model not fitted")
+
+    if level <= 0 || level >= 1
+        throw(DomainError(level, "Confidence level must be in (0, 1). Got level = $level."))
+    end
 
     if joint
         !obj.has_bootstrapped && error(
@@ -79,11 +86,28 @@ end
 
 function _confint_joint(obj::AbstractDoubleML, level::Real)
     boot_t_stat = obj.boot_t_stat
-    max_abs_t = vec(maximum(abs.(boot_t_stat), dims = 2))
+    n_rep = obj.n_rep
     alpha = 1.0 - level
-    critical_value = quantile(max_abs_t, 1.0 - alpha)
-    lower = obj.coef - critical_value * obj.se
-    upper = obj.coef + critical_value * obj.se
+
+    # boot_t_stat has shape (n_rep_boot, n_coefs, n_rep)
+    # For each repetition, find max |t| across coefficients (trivial for n_coefs=1)
+    # Then get critical value from that repetition's bootstrap distribution
+    all_cis = Matrix{eltype(boot_t_stat)}(undef, n_rep, 2)
+
+    for r in 1:n_rep
+        # Max absolute t-stat for this repetition (across all coefficients)
+        max_abs_t = vec(maximum(abs.(view(boot_t_stat, :, :, r)), dims = 2))
+        # Critical value from bootstrap distribution
+        critical_value = quantile(max_abs_t, 1.0 - alpha)
+        # CI for this repetition
+        all_cis[r, 1] = obj.all_coef[r] - critical_value * obj.all_se[r]
+        all_cis[r, 2] = obj.all_coef[r] + critical_value * obj.all_se[r]
+    end
+
+    # Aggregate CIs across repetitions via median (matching Python)
+    lower = median(all_cis[:, 1])
+    upper = median(all_cis[:, 2])
+
     return hcat(lower, upper)
 end
 

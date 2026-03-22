@@ -8,30 +8,94 @@ Bootstrap inference for DoubleML models.
 Draw bootstrap weights for multiplier bootstrap.
 
 # Methods
-- `:normal`: Standard normal N(0,1) weights
-- `:wild`: Mammen's wild bootstrap
-- `:bayes`: Exponential(1) - 1 weights (Bayesian bootstrap)
+- `NormalBootstrap()`: Standard normal N(0,1) weights
+- `WildBootstrap()`: Mammen's wild bootstrap
+- `BayesBootstrap()`: Exponential(1) - 1 weights (Bayesian bootstrap)
+- Symbol method `:normal`, `:wild`, or `:Bayes`: For backward compatibility
 """
 function _draw_weights(
-        method::Symbol, n_rep_boot::Int, n_obs::Int, ::Type{T};
+        method::NormalBootstrap, n_rep_boot::Int, n_obs::Int, ::Type{T};
         rng::AbstractRNG = Random.default_rng()
     ) where {T <: AbstractFloat}
-    if method == :normal
-        return randn(rng, T, n_rep_boot, n_obs)
-    elseif method == :wild
-        xx = randn(rng, T, n_rep_boot, n_obs)
-        yy = randn(rng, T, n_rep_boot, n_obs)
-        return @. xx / sqrt(T(2)) + (yy^2 - 1) / 2
-    elseif method == :bayes
-        weights = rand(rng, T, n_rep_boot, n_obs)
-        return @. -log(weights) - 1
+    return randn(rng, T, n_rep_boot, n_obs)
+end
+
+function _draw_weights(
+        method::WildBootstrap, n_rep_boot::Int, n_obs::Int, ::Type{T};
+        rng::AbstractRNG = Random.default_rng()
+    ) where {T <: AbstractFloat}
+    xx = randn(rng, T, n_rep_boot, n_obs)
+    yy = randn(rng, T, n_rep_boot, n_obs)
+    return @. xx / sqrt(T(2)) + (yy^2 - 1) / 2
+end
+
+function _draw_weights(
+        method::BayesBootstrap, n_rep_boot::Int, n_obs::Int, ::Type{T};
+        rng::AbstractRNG = Random.default_rng()
+    ) where {T <: AbstractFloat}
+    weights = rand(rng, T, n_rep_boot, n_obs)
+    return @. -log(weights) - 1
+end
+
+"""
+    _bootstrap_method_from_symbol(sym::Symbol) -> AbstractBootstrapMethod
+
+Convert a Symbol to the corresponding bootstrap method type.
+
+# Arguments
+- `sym::Symbol`: One of `:normal`, `:wild`, `:Bayes`, or `:bayes`
+
+# Returns
+- An `AbstractBootstrapMethod` subtype instance
+
+# Throws
+- `ArgumentError` if the symbol is not recognized
+"""
+function _bootstrap_method_from_symbol(sym::Symbol)
+    if sym == :normal
+        return NormalBootstrap()
+    elseif sym == :wild
+        return WildBootstrap()
+    elseif sym == :Bayes || sym == :bayes
+        return BayesBootstrap()
     else
-        throw(ArgumentError("Bootstrap method $method not supported. Use :normal, :wild, or :bayes."))
+        throw(ArgumentError("Bootstrap method :$sym not supported. Use :normal, :wild, or :Bayes."))
     end
 end
 
 """
-    multiplier_bootstrap(psi, psi_a, n_rep_boot=1000; method=:normal, rng)
+    _symbol_from_method(method::AbstractBootstrapMethod) -> Symbol
+
+Convert a bootstrap method type to its Symbol representation.
+
+# Arguments
+- `method::AbstractBootstrapMethod`: A bootstrap method instance
+
+# Returns
+- The corresponding Symbol (`:normal`, `:wild`, or `:Bayes`)
+"""
+function _symbol_from_method(::NormalBootstrap)
+    return :normal
+end
+
+function _symbol_from_method(::WildBootstrap)
+    return :wild
+end
+
+function _symbol_from_method(::BayesBootstrap)
+    return :Bayes
+end
+
+# Backward-compatible dispatch for Symbol input
+function _draw_weights(
+        method::Symbol, n_rep_boot::Int, n_obs::Int, ::Type{T};
+        rng::AbstractRNG = Random.default_rng()
+    ) where {T <: AbstractFloat}
+    return _draw_weights(_bootstrap_method_from_symbol(method), n_rep_boot, n_obs, T; rng = rng)
+end
+
+"""
+    multiplier_bootstrap(psi, psi_a, n_rep_boot=1000; method=NormalBootstrap(), rng)
 
 Perform multiplier bootstrap for inference.
 
@@ -40,7 +104,8 @@ Vector of bootstrap t-statistics.
 """
 function multiplier_bootstrap(
         psi::AbstractVector{T}, psi_a::AbstractVector{T}, n_rep_boot::Int = 1000;
-        method::Symbol = :normal, rng::AbstractRNG = Random.default_rng()
+        method::Union{AbstractBootstrapMethod, Symbol} = NormalBootstrap(),
+        rng::AbstractRNG = Random.default_rng()
     ) where {T <: AbstractFloat}
     n_obs = length(psi)
 
@@ -74,30 +139,47 @@ Check if bootstrap has been performed.
 has_bootstrapped(obj::AbstractDoubleML) = obj.has_bootstrapped
 
 """
-    bootstrap!(obj; n_rep_boot=1000, method=:normal, rng)
+    bootstrap!(obj; n_rep_boot=1000, method=NormalBootstrap(), rng)
 
 Perform multiplier bootstrap on a fitted DoubleML model.
+
+Uses per-repetition score functions (psi) computed at each repetition's coefficient
+to properly handle multiple sample splits (n_rep > 1).
 
 # Arguments
 - `obj`: Fitted DoubleML model
 - `n_rep_boot::Int=1000`: Number of bootstrap replications
-- `method::Symbol=:normal`: Bootstrap method (:normal, :wild, or :bayes)
+- `method`: Bootstrap method - `NormalBootstrap()`, `WildBootstrap()`, `BayesBootstrap()`,
+            or a Symbol (`:normal`, `:wild`, `:Bayes`)
 - `rng::AbstractRNG`: Random number generator
 """
 function bootstrap!(
         obj::AbstractDoubleML{T};
         n_rep_boot::Int = 1000,
-        method::Symbol = :normal,
+        method::Union{AbstractBootstrapMethod, Symbol} = NormalBootstrap(),
         rng::AbstractRNG = Random.default_rng()
     ) where {T <: AbstractFloat}
     isnan(obj.coef) && throw(ArgumentError("Model must be fitted before calling bootstrap!"))
 
-    boot_draws = multiplier_bootstrap(obj.psi, obj.psi_a, n_rep_boot; method = method, rng = rng)
-    boot_t_stats = boot_draws ./ obj.se
+    n_rep = obj.n_rep
+    n_coefs = 1  # Currently only single treatment supported
 
-    obj.boot_t_stat = reshape(boot_t_stats, n_rep_boot, 1)
+    # Initialize 3D array for bootstrap t-statistics: (n_rep_boot × n_coefs × n_rep)
+    obj.boot_t_stat = Array{T, 3}(undef, n_rep_boot, n_coefs, n_rep)
+
+    # Loop over sample splitting repetitions (matching Python's approach)
+    for r in 1:n_rep
+        # Use psi and psi_a from this specific repetition
+        psi_r = view(obj.all_psi, :, r)
+        psi_a_r = view(obj.all_psi_a, :, r)
+        se_r = obj.all_se[r]
+
+        boot_draws = multiplier_bootstrap(psi_r, psi_a_r, n_rep_boot; method = method, rng = rng)
+        obj.boot_t_stat[:, n_coefs, r] = boot_draws ./ se_r
+    end
+
     obj.has_bootstrapped = true
-    obj.boot_method = method
+    obj.boot_method = method isa Symbol ? _bootstrap_method_from_symbol(method) : method
     obj.n_rep_boot = n_rep_boot
 
     return obj

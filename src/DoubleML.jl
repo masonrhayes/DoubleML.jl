@@ -76,6 +76,7 @@ include("evaluation.jl")
 include("datasets/dgp/plr_CCDDHNR2018.jl")
 include("datasets/dgp/irm_data.jl")
 include("datasets/dgp/lplr_LZZ2020.jl")
+include("datasets/dgp/make_plr_DTL2025.jl")
 
 # ============================================================================
 # Exports
@@ -115,6 +116,6 @@ export summary_stats, multiplier_bootstrap
 export fitted_params, report, evaluate!
 
 # Data generators
-export make_plr_CCDDHNR2018, make_irm_data, make_lplr_LZZ2020
+export make_plr_CCDDHNR2018, make_irm_data, make_lplr_LZZ2020, make_plr_DTL2025
 
 end # module

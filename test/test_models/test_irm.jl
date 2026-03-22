@@ -42,10 +42,11 @@ LogisticClassifier = @load LogisticClassifier pkg = MLJLinearModels verbosity = 
         ct = coeftable(model)
         @test ct isa StatsBase.CoefTable
 
-        # Verify psi arrays are populated
-        @test length(model.psi) == n_obs
-        @test length(model.psi_a) == n_obs
-        @test length(model.psi_b) == n_obs
+        # Verify all_psi arrays are populated
+        @test size(model.all_psi, 1) == n_obs
+        @test size(model.all_psi, 2) == model.n_rep
+        @test size(model.all_psi_a, 1) == n_obs
+        @test size(model.all_psi_b, 1) == n_obs
         @test !isempty(model.fitted_learners_g0)
         @test !isempty(model.fitted_learners_g1)
         @test !isempty(model.fitted_learners_m)
