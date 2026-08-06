@@ -208,9 +208,12 @@ function DoubleMLPLRConformalUT(
         )
     )
 
-    # Validate UT parameters
+    # Validate and convert UT parameters before storing them
     n_gh in (3, 5) || throw(ArgumentError("n_gh must be 3 or 5. Got: $n_gh"))
-    ut_alpha > 0 || throw(ArgumentError("ut_alpha must be positive. Got: $ut_alpha"))
+    alpha = T(ut_alpha)
+    beta = T(ut_beta)
+    kappa = T(ut_kappa)
+    _ut_weights(alpha, beta, kappa)
 
     # Create score object
     score_obj = PartiallingOutScore()
@@ -230,7 +233,7 @@ function DoubleMLPLRConformalUT(
         T(NaN), T(NaN),  # standard_dml_coef, standard_dml_se (stored in fit!)
         T(NaN), T(NaN),  # ut_mean, ut_var (computed in fit!)
         n_folds, n_rep,
-        T(ut_alpha), T(ut_beta), T(ut_kappa), n_gh,
+        alpha, beta, kappa, n_gh,
         zeros(T, 2), zeros(T, 2, 2)  # score_mean, score_cov diagnostics
     )
 end
@@ -331,12 +334,16 @@ end
 # ============================================================================
 
 """
-    _make_psd_cholesky(M::AbstractMatrix{T}) -> Cholesky
+    _make_psd_cholesky(M::AbstractMatrix{T}; verbose=0) -> Cholesky
 
 Ensure a 2×2 matrix is positive definite by directly calculating its minimum eigenvalue
-and applying an exact shift if needed, returning its Cholesky factorization.
+and applying an exact shift if needed, returning its Cholesky factorization. When
+`verbose > 0`, warn if the negative eigenvalue is large relative to the matrix scale.
 """
-function _make_psd_cholesky(M::AbstractMatrix{T}) where {T}
+function _make_psd_cholesky(
+        M::AbstractMatrix{T};
+        verbose::Int = 0,
+    ) where {T}
     a = M[1, 1]
     c = M[2, 2]
     b = (M[1, 2] + M[2, 1]) / 2
@@ -344,8 +351,14 @@ function _make_psd_cholesky(M::AbstractMatrix{T}) where {T}
     # Calculate the minimum eigenvalue analytically
     # hypot(x, y) is a safe way to compute sqrt(x^2 + y^2) preventing overflow
     min_eig = (a + c - hypot(a - c, 2 * b)) / 2
-    
+
     jitter = cbrt(eps(T))^2
+
+    matrix_scale = max(abs(a), abs(b), abs(c))
+    materiality_threshold = sqrt(eps(T)) * matrix_scale
+    if verbose > 0 && min_eig < -materiality_threshold
+        @warn "UT score covariance may be materially indefinite; applying a diagonal shift before Cholesky factorization." minimum_eigenvalue = min_eig matrix_scale diagonal_shift = jitter - min_eig
+    end
 
     # If the matrix isn't sufficiently positive definite, apply the exact shift needed
     if min_eig < jitter
@@ -358,28 +371,70 @@ function _make_psd_cholesky(M::AbstractMatrix{T}) where {T}
 end
 
 """
-    _ut_propagate(μA, μB, ΣA, ΣB, ΣAB, alpha, beta, kappa) -> (theta, var)
+    _ut_weights(alpha, beta, kappa) -> (scale², w0_mean, wi, w0_cov)
+
+Validate scaled unscented-transform parameters and return the sigma-point scale
+and weights for a two-dimensional state.
+"""
+function _ut_weights(alpha::T, beta::T, kappa::T) where {T <: AbstractFloat}
+    isfinite(alpha) || throw(ArgumentError("ut_alpha must be finite. Got: $alpha"))
+    isfinite(beta) || throw(ArgumentError("ut_beta must be finite. Got: $beta"))
+    isfinite(kappa) || throw(ArgumentError("ut_kappa must be finite. Got: $kappa"))
+    alpha > zero(T) || throw(ArgumentError("ut_alpha must be positive. Got: $alpha"))
+
+    n_plus_kappa = T(2) + kappa
+    n_plus_kappa > zero(T) || throw(
+        ArgumentError("ut_kappa must be greater than -2 for a 2D transform. Got: $kappa")
+    )
+
+    scale_squared = alpha^2 * n_plus_kappa
+    isfinite(scale_squared) && scale_squared > zero(T) || throw(
+        ArgumentError(
+            "UT parameters must produce a finite, positive sigma-point scale. " *
+                "Got alpha=$alpha and kappa=$kappa."
+        )
+    )
+
+    lambda = scale_squared - T(2)
+    w0_mean = lambda / scale_squared
+    wi = inv(T(2) * scale_squared)
+    w0_cov = w0_mean + (one(T) - alpha^2 + beta)
+    all(isfinite, (w0_mean, wi, w0_cov)) || throw(
+        ArgumentError(
+            "UT parameters produce non-finite weights. " *
+                "Got alpha=$alpha, beta=$beta, and kappa=$kappa."
+        )
+    )
+
+    return scale_squared, w0_mean, wi, w0_cov
+end
+
+"""
+    _ut_propagate(μA, μB, ΣA, ΣB, ΣAB, alpha, beta, kappa; verbose=0) -> (theta, var)
 
 Apply the 2D unscented transform to propagate uncertainty through the
 nonlinear map θ = -B̄/Ā.
 
 Sigma point parameters (standard): α=1, β=2, κ=3-n_dim=1 for a 2D state.
 This gives 5 sigma points. A numerical guard prevents division by near-zero
-in the denominator.
+in the denominator. When `verbose > 0`, warn if the guard replaces a ratio.
 """
 function _ut_propagate(
         mu_a::T, mu_b::T, var_a::T, var_b::T, cov_ab::T,
         alpha::T, beta::T, kappa::T,
-    ) where {T}
+        ; verbose::Int = 0,
+    ) where {T <: AbstractFloat}
 
-    n_dim = 2
-    lam = alpha * alpha * (n_dim + kappa) - n_dim
+    scale_squared, w0_m, wi, w0_c = _ut_weights(alpha, beta, kappa)
 
-    chol = _make_psd_cholesky([var_a cov_ab; cov_ab var_b])
+    chol = _make_psd_cholesky(
+        [var_a cov_ab; cov_ab var_b];
+        verbose = verbose,
+    )
     L = chol.L
 
     # Scale for sigma point spread
-    scale = sqrt(n_dim + lam)
+    scale = sqrt(scale_squared)
 
     # Sigma point offsets from Cholesky columns
     (dx1, dy1, dx2, dy2) = scale * L
@@ -401,25 +456,27 @@ function _ut_propagate(
     )
 
     # Weights
-    w0_m = lam / (n_dim + lam)
-    wi_m = T(1) / (2 * (n_dim + lam))
-    wm = (w0_m, wi_m, wi_m, wi_m, wi_m)
+    wm = (w0_m, wi, wi, wi, wi)
 
-    w0_c = lam / (n_dim + lam) + (1 - alpha * alpha + beta)
-    wi_c = T(1) / (2 * (n_dim + lam))
-    wc = (w0_c, wi_c, wi_c, wi_c, wi_c)
+    wc = (w0_c, wi, wi, wi, wi)
 
     # Propagate through θ = -B/A with near-zero guard
     gammas = Vector{T}(undef, 5)
     denom_threshold = sqrt(eps(T))
+    fallback_count = 0
     for j in 1:5
         a = chi_a[j]
         if abs(a) < denom_threshold
             # Fallback to mean ratio when denominator is near zero
             gammas[j] = -mu_b / mu_a
+            fallback_count += 1
         else
             gammas[j] = -chi_b[j] / a
         end
+    end
+
+    if verbose > 0 && fallback_count > 0
+        @warn "UT sigma-point denominator was near zero; replaced its ratio with the mean ratio." fallback_count denominator_threshold = denom_threshold mean_denominator = mu_a
     end
 
     # Recombine to output mean and variance
@@ -524,6 +581,7 @@ function _propagate_ut!(
         theta_k, var_k = _ut_propagate(
             mu_a, mu_b, var_a, var_b, cov_ab,
             obj.ut_alpha, obj.ut_beta, obj.ut_kappa,
+            ; verbose = verbose,
         )
 
         thetas[k] = theta_k
@@ -1031,7 +1089,7 @@ function Base.show(io::IO, obj::DoubleMLPLRConformalUT)
     println(io, "UT parameters: α=$(obj.ut_alpha), β=$(obj.ut_beta), κ=$(obj.ut_kappa)")
     println(io, "GH quadrature: $(obj.n_gh) points")
     if obj.n_folds == 1
-        println(io, "Training: Full dataset (no cross-fitting)")
+        println(io, "Training: Without cross-fitting)")
     else
         println(io, "Training: $(obj.n_folds)-fold cross-fitting, $(obj.n_rep) repetition(s)")
     end
