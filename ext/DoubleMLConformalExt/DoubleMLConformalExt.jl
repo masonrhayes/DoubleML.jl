@@ -11,16 +11,18 @@ using ConformalPrediction
 using Distributions
 using StatsBase
 using StableRNGs
+using LinearAlgebra
 
 import DoubleML: AbstractDoubleML, DoubleMLData, PartiallingOutScore
 import DoubleML: compute_score, dml2_solve, coerce_target
 import MLJ: Supervised
 
-export DoubleMLPLRConformal
+export DoubleMLPLRConformal, DoubleMLPLRConformalUT
 export standard_dml_coef, standard_dml_se
 export theta_samples, conformal_intervals
 
-# Include the conformal model implementation
+# Include the conformal model implementations
 include("plr_conformal.jl")
+include("plr_conformal_ut.jl")
 
 end # module
