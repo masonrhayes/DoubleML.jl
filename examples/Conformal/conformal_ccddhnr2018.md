@@ -26,7 +26,7 @@
     # This information is used for caching.
     [PlutoStaticHTML.State]
     input_sha = "9e18930474650da55343ffa77c3243c48ce029d9acb0495a70189ad27d4de884"
-    julia_version = "1.12.5"
+    julia_version = "1.12.6"
 -->
 
 

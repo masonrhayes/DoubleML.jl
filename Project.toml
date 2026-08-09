@@ -29,6 +29,9 @@ ConformalPrediction = "98bfc277-1877-43dc-819b-a3e38c30242f"
 [extensions]
 DoubleMLConformalExt = "ConformalPrediction"
 
+[workspace]
+projects = ["test", "docs", "examples"]
+
 [compat]
 CategoricalArrays = "1.0"
 ConformalPrediction = "0.2.1"
