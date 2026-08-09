@@ -2,7 +2,7 @@
 
 julia_version = "1.12.6"
 manifest_format = "2.0"
-project_hash = "71be3cb6dca4b2e815920bf7323e3ae5af628ead"
+project_hash = "a59a42509d46550b0b67d2cb11e8706bc22408a4"
 
 [[deps.ADTypes]]
 git-tree-sha1 = "9b38b82a9fe131f3d331a53b7203d9d1a2a4602c"
@@ -815,7 +815,7 @@ uuid = "35a29f4d-8980-5a13-9543-d66fff28ecb8"
 version = "0.1.21"
 
 [[deps.DoubleML]]
-deps = ["CategoricalArrays", "DataFrames", "Distributions", "JET", "LinearAlgebra", "MLJ", "MLJBase", "MonteCarloMeasurements", "PrettyTables", "Printf", "Random", "Reexport", "Roots", "ScientificTypes", "StableRNGs", "Statistics", "StatsAPI", "StatsBase", "StatsFuns"]
+deps = ["CategoricalArrays", "DataFrames", "Distributions", "LinearAlgebra", "MLJ", "MLJBase", "PrettyTables", "Printf", "Random", "Reexport", "Roots", "ScientificTypes", "StableRNGs", "Statistics", "StatsAPI", "StatsBase", "StatsFuns"]
 path = "."
 uuid = "77251493-8087-46d5-be33-49d84ce818f6"
 version = "0.1.0"
@@ -1215,12 +1215,6 @@ version = "0.73.26+0"
 git-tree-sha1 = "86f86b6168a016ed88e4ae4e64577b98c3b59e8e"
 uuid = "a0844989-3bd2-4988-8bea-c9407ab0941b"
 version = "1.1.0"
-
-[[deps.GenericSchur]]
-deps = ["LinearAlgebra", "Printf"]
-git-tree-sha1 = "a694e2a57394e409f7a11ee0977362a9fafcb8c7"
-uuid = "c145ed77-6b09-5dd9-b285-bf645a82121e"
-version = "0.5.6"
 
 [[deps.GeometryBasics]]
 deps = ["EarCut_jll", "LinearAlgebra", "PrecompileTools", "Random", "StaticArrays"]
@@ -2231,28 +2225,6 @@ version = "1.2.0"
 [[deps.Mmap]]
 uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 version = "1.11.0"
-
-[[deps.MonteCarloMeasurements]]
-deps = ["Distributions", "GenericSchur", "LinearAlgebra", "MacroTools", "Random", "SLEEFPirates", "StaticArrays", "Statistics", "StatsBase"]
-git-tree-sha1 = "5fa0ef6af2ff71912dd1675146b27818170a4753"
-uuid = "0987c9cc-fe09-11e8-30f0-b96dd679fdca"
-version = "1.5.2"
-
-    [deps.MonteCarloMeasurements.extensions]
-    AccessorsExtraExt = "AccessorsExtra"
-    ForwardDiffExt = "ForwardDiff"
-    MakieExt = "Makie"
-    MeasurementsExt = "Measurements"
-    RecipesBaseExt = "RecipesBase"
-    UnitfulExt = "Unitful"
-
-    [deps.MonteCarloMeasurements.weakdeps]
-    AccessorsExtra = "33016aad-b69d-45be-9359-82a41f556fd4"
-    ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
-    Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
-    Measurements = "eff96d63-e80a-5855-80a2-b1b0885c5ab7"
-    RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
-    Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 
 [[deps.MosaicViews]]
 deps = ["MappedArrays", "OffsetArrays", "PaddedViews", "StackViews"]

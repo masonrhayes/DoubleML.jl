@@ -2,15 +2,16 @@ name = "DoubleML"
 uuid = "77251493-8087-46d5-be33-49d84ce818f6"
 version = "0.1.0"
 
+[workspace]
+projects = ["test", "docs", "examples"]
+
 [deps]
 CategoricalArrays = "324d7699-5711-5eae-9e2f-1d82baa6b597"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
-JET = "c3a54625-cd67-489e-a8e7-0a5a0ff4e31b"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 MLJ = "add582a8-e3ab-11e8-2d5e-e98b27df1bc7"
 MLJBase = "a7f614a8-145f-11e9-1d2a-a57a1082229d"
-MonteCarloMeasurements = "0987c9cc-fe09-11e8-30f0-b96dd679fdca"
 PrettyTables = "08abe8d2-0d0c-5749-adfa-8a2ac140af0d"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
@@ -29,19 +30,23 @@ ConformalPrediction = "98bfc277-1877-43dc-819b-a3e38c30242f"
 [extensions]
 DoubleMLConformalExt = "ConformalPrediction"
 
-[workspace]
-projects = ["test", "docs", "examples"]
-
 [compat]
 CategoricalArrays = "1.0"
 ConformalPrediction = "0.2.1"
 DataFrames = "1.8.1"
+Distributions = "0.25.127"
+LinearAlgebra = "1.10"
+MLJ = "0.23.3"
 MLJBase = "1.12"
-MonteCarloMeasurements = "1.5.2"
 PrettyTables = "3.2.3"
 Printf = "1.10"
+Random = "1.10"
+Reexport = "1.2.2"
 Roots = "2.2.12"
 ScientificTypes = "3.2.0"
 StableRNGs = "1.0.4"
+Statistics = "1.10"
+StatsAPI = "1.8.0"
+StatsBase = "0.34.12"
 StatsFuns = "1.5.2"
 julia = "1.10"
