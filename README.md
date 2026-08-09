@@ -1,11 +1,15 @@
-# DoubleML.jl
 
-[![SciML Code Style](https://img.shields.io/static/v1?label=code%20style&message=SciML&color=9558b2&labelColor=389826)](https://github.com/SciML/SciMLStyle)
+<picture>
+  <source srcset="material/logo/doubleml-logo-dark.png" media="(prefers-color-scheme: dark)">
+  <img src="material/logo/doubleml-logo.png" width="400">
+</picture>
+
+[![SciML Code Style](<https://img.shields.io/static/v1?label=code%20style&message=SciML&color=9558b2&labelColor=389826>)](https://github.com/SciML/SciMLStyle)
 [![Julia](https://img.shields.io/badge/Julia-1.10%2B-blue)](https://julialang.org)
 
 **Double Machine Learning for Causal Inference in Julia**
 
-DoubleML.jl implements double/de-biased machine learning methods for causal inference, following [Chernozhukov et al. (2018)](https://arxiv.org/abs/1608.00060).
+`DoubleML.jl` implements double/de-biased machine learning methods for causal inference, following [Chernozhukov et al. (2018)](https://arxiv.org/abs/1608.00060).
 
 This package is inspired by, and aims to closely follow, the [DoubleML](https://docs.doubleml.org/stable/index.html) Python package, but is unaffiiliated with it.
 
@@ -23,12 +27,13 @@ Why DoubleML.jl?
 
 This package remains in early development and testing stages. The following models are currently implemented:
 
-| Model                    | Use Case                             | Learners                                    | Status                              |
-| ------------------------ | ------------------------------------ | ------------------------------------------- | ----------------------------------- |
+
+| Model                  | Use Case                             | Learners                              | Status                              |
+| ------------------------ | -------------------------------------- | --------------------------------------- | ------------------------------------- |
 | `DoubleMLPLR`          | Continuous/binary treatment          | `ml_l`, `ml_m` (+ `ml_g` for IV-type) | Implemented                         |
-| `DoubleMLIRM`          | Binary treatment only                | `ml_g`, `ml_m` (classifier)             | Implemented                         |
-| `DoubleMLLPLR`         | Binary outcome (Y ∈ {0,1})          | `ml_M`, `ml_t`, `ml_m` (+ `ml_a`)   | ⚠️ Experimental                   |
-| `DoubleMLPLRConformal` | Conformal uncertainty quantification | `ml_l`, `ml_m` (conformal-wrapped)      | 🔬 Experimental, research prototype |
+| `DoubleMLIRM`          | Binary treatment only                | `ml_g`, `ml_m` (classifier)           | Implemented                         |
+| `DoubleMLLPLR`         | Binary outcome (Y ∈ {0,1})          | `ml_M`, `ml_t`, `ml_m` (+ `ml_a`)     | ⚠️ Experimental                   |
+| `DoubleMLPLRConformal` | Conformal uncertainty quantification | `ml_l`, `ml_m` (conformal-wrapped)    | 🔬 Experimental, research prototype |
 
 ## Quick Example
 
@@ -54,14 +59,16 @@ println("95% CI: ", confint(model))
 
 ### Conformal Double Machine Learning (CDML)
 
-This package also implements, as a package extension, a proof-of-concept implementation of Conformal Double Machine Learning (CDML). 
+This package also implements, as a package extension, a proof-of-concept implementation of Conformal Double Machine Learning (CDML).
 
 CDML uses **conformal prediction** (from [ConformalPrediction.jl](https://github.com/JuliaTrustworthyAI/ConformalPrediction.jl)) for uncertainty quantification. Conformal prediction is a distribution-free approach that provides valid prediction intervals with guaranteed frequentist coverage rates, without assumptions on the data distribution or model specification.
 
 **Key characteristics:**
 
 - Trains on dataset, with one holdout set for validity of conformal predictions (no cross-fitting required)
-- Uses Monte Carlo sampling from conformal intervals to propagate uncertainty to the causal inference stage
+- Two implementations:
+  - One uses an unscented transform to propagate ML prediction uncertainty into the causal inference stage
+  - Another uses Monte Carlo sampling from conformal intervals to propagate uncertainty to the causal inference stage
 - Models correlation between nuisance function uncertainties via Gaussian copula
 - Requires conformal-wrapped MLJ models from `ConformalPrediction.jl`
 
@@ -71,14 +78,14 @@ See documentation for usage details.
 
 ## Documentation
 
-- [User Guide](https://masonrhayes.github.io/DoubleML.jl/stable/user-guide/) - Installation, concepts, and workflow
-- [Tutorials](https://masonrhayes.github.io/DoubleML.jl/stable/tutorials/) - Step-by-step examples
-- [API Reference](https://masonrhayes.github.io/DoubleML.jl/stable/api/) - Complete API documentation
-- [Examples](https://masonrhayes.github.io/DoubleML.jl/stable/examples/) - Pluto notebooks
+- [User Guide](https://masonrhayes.github.io/DoubleML.jl/dev/user-guide/) - Installation, concepts, and workflow
+- [Tutorials](https://masonrhayes.github.io/DoubleML.jl/dev/tutorials/) - Step-by-step examples
+- [API Reference](https://masonrhayes.github.io/DoubleML.jl/dev/api/) - Complete API documentation
+- [Examples](https://masonrhayes.github.io/DoubleML.jl/dev/examples/) - Pluto notebooks
 
 ## Roadmap
 
-There are many features and models still not yet implemented in this package. The broad roadmap is to achieve feature parity with the [DoubleML](https://docs.doubleml.org/stable/index.html) package in Python, and to add some more experimental features (e.g., conformal predictions).
+There are many features and models still not yet implemented in this package. The broad roadmap is to achieve feature parity with the [DoubleML](https://docs.doubleml.org/stable/index.html) package in Python, and to continue research on more experimental features (e.g., conformal predictions).
 
 Currently, a variety of tests against the Python package are implemented to ensure similar functionality of the DoubleMLPLR, DoubleMLIRM, and DoubleMLLPLR models.
 
