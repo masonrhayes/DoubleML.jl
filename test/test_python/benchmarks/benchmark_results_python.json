@@ -5,8 +5,8 @@
   "alpha": 0.5,
   "learner": "XGBRegressor",
   "n_folds": 5,
-  "benchmark_median_sec": 306.7075713459926,
-  "coefficient": 0.4855144958916629,
-  "std_error": 0.003144048151880548,
+  "benchmark_median_sec": 300.79738496000937,
+  "coefficient": 0.4854410047497848,
+  "std_error": 0.0031442983767798805,
   "data_file": "/home/mason/Documents/projects/DoubleML.jl/test/test_python/benchmarks/benchmark_data.csv"
 }

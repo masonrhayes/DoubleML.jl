@@ -9,6 +9,7 @@ dependencies = [
     "numpy>=2.4.2",
     "pandas>=3.0.1",
     "pyperf>=2.10.0",
+    "pysr>=1.5.10",
     "scikit-learn>=1.8.0",
     "toml>=0.10.2",
     "xgboost>=3.2.0",

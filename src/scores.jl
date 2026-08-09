@@ -186,7 +186,7 @@ end
 Score function for LPLR using nuisance space estimation.
 
 Computes: ``\\psi(W, \\beta, \\eta) = \\psi(X){Ye^{(\\beta D)} - (1-Y)e^{(r_0(X))}}{D - m_0(X)}``
-where ``\\psi(X) = \text{expit}(-r_0(X))``
+where ``\\psi(X) = \\text{expit}(-r_0(X))``
 
 # References
 - Liu et al. (2021): Double/debiased machine learning for logistic partially linear models
