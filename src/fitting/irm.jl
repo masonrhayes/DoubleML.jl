@@ -178,8 +178,8 @@ function MLJ.fit!(obj::DoubleMLIRM{T}; verbose::Int = 0, force::Bool = false) wh
     Y_coerced = coerce_target(Y, obj.ml_g)
     D_coerced = coerce_target(D, obj.ml_m)
 
-    all_cond_smpls = get_conditional_sample_splitting(n_obs, obj.n_folds, obj.n_rep, D)
     all_smpls = draw_sample_splitting(n_obs, obj.n_folds, obj.n_rep)
+    all_cond_smpls = get_conditional_sample_splitting(all_smpls, D)
 
     obj.fitted_learners_g0 = MLJ.Machine[]
     obj.fitted_learners_g1 = MLJ.Machine[]
@@ -229,8 +229,8 @@ function MLJ.fit!(obj::DoubleMLIRM{T}; verbose::Int = 0, force::Bool = false) wh
         psi_b_rep = zeros(T, n_obs)
 
         for (fold_idx, (train_idx, test_idx)) in enumerate(smpls)
-            train_idx_d0, test_idx_d0 = smpls_d0[fold_idx]
-            train_idx_d1, test_idx_d1 = smpls_d1[fold_idx]
+            train_idx_d0, _ = smpls_d0[fold_idx]
+            train_idx_d1, _ = smpls_d1[fold_idx]
 
             X_test = X[test_idx, :]
             Y_test = Y[test_idx]

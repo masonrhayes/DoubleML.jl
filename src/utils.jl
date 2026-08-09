@@ -108,10 +108,14 @@ end
 
 """
     get_conditional_sample_splitting(n_obs, n_folds, n_rep, d; shuffle=true, rng)
+    get_conditional_sample_splitting(all_smpls, d)
 
 Create conditional sample splits for control (D=0) and treated (D=1) groups.
 
 Used for IRM where separate models are fit for each treatment group.
+
+Pass existing sample splits to ensure that the conditional and unconditional
+learners use the same outer folds.
 
 # Returns
 Vector of length `n_rep`, each a tuple (smpls_d0, smpls_d1).
@@ -122,6 +126,12 @@ function get_conditional_sample_splitting(
         shuffle::Bool = true, rng::AbstractRNG = Random.default_rng()
     )
     all_smpls = draw_sample_splitting(n_obs, n_folds, n_rep; shuffle = shuffle, rng = rng)
+
+    return get_conditional_sample_splitting(all_smpls, d)
+end
+
+function get_conditional_sample_splitting(all_smpls::AbstractVector, d::AbstractVector)
+    n_rep = length(all_smpls)
 
     all_cond_smpls = Vector{
         Tuple{

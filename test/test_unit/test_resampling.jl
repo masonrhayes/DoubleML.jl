@@ -186,3 +186,36 @@ using StableRNGs
         @test sort(all_test) == 1:n_obs
     end
 end
+
+@testset "get_conditional_sample_splitting" begin
+    n_obs = 100
+    n_folds = 5
+    n_rep = 3
+    d = repeat([0, 1], n_obs ÷ 2)
+    splits = draw_sample_splitting(n_obs, n_folds, n_rep; rng = StableRNG(123))
+    conditional_splits = get_conditional_sample_splitting(splits, d)
+
+    @test length(conditional_splits) == n_rep
+
+    for r in 1:n_rep
+        smpls_d0, smpls_d1 = conditional_splits[r]
+
+        for k in 1:n_folds
+            train_idx, test_idx = splits[r][k]
+            train_idx_d0, test_idx_d0 = smpls_d0[k]
+            train_idx_d1, test_idx_d1 = smpls_d1[k]
+
+            @test train_idx_d0 == train_idx[d[train_idx] .== 0]
+            @test train_idx_d1 == train_idx[d[train_idx] .== 1]
+            @test test_idx_d0 == test_idx[d[test_idx] .== 0]
+            @test test_idx_d1 == test_idx[d[test_idx] .== 1]
+            @test isempty(intersect(train_idx_d0, test_idx))
+            @test isempty(intersect(train_idx_d1, test_idx))
+        end
+    end
+
+    generated_conditional_splits = get_conditional_sample_splitting(
+        n_obs, n_folds, n_rep, d; rng = StableRNG(123)
+    )
+    @test generated_conditional_splits == conditional_splits
+end
