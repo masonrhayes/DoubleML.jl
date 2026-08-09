@@ -122,16 +122,36 @@ LogisticClassifier = @load LogisticClassifier pkg = MLJLinearModels verbosity = 
         data = make_plr_CCDDHNR2018(100; alpha = 0.5, rng = rng)
         model = DoubleMLPLR(data, LinearRegressor(), LinearRegressor(); n_folds = 3)
 
-        fit!(model)
+        fit!(model; rng = StableRNG(100))
         first_coef = model.coef
 
         # Without force, should warn and return early
         @test_logs (:warn, r"already fitted") fit!(model)
         @test model.coef == first_coef
 
-        # With force=true, should refit
-        fit!(model; force = true)
-        @test_logs (:warn, r"Forcing refit") fit!(model; force = true)
+        bootstrap!(model; n_rep_boot = 100, rng = StableRNG(101))
+        @test has_bootstrapped(model)
+
+        # A successful refit invalidates inference from the previous fit.
+        @test_logs (:warn, r"Forcing refit") fit!(
+            model; force = true, rng = StableRNG(102)
+        )
+        @test isfitted(model)
+        @test !has_bootstrapped(model)
+        @test size(model.boot_t_stat) == (0, 0, 0)
+        @test model.boot_method === nothing
+        @test model.n_rep_boot == 0
+
+        # A failed refit leaves the model explicitly unfitted, without stale
+        # coefficient, score, or bootstrap results.
+        bootstrap!(model; n_rep_boot = 100, rng = StableRNG(103))
+        model.n_folds = data.n_obs + 1
+        @test_throws Exception fit!(model; force = true, rng = StableRNG(104))
+        @test !isfitted(model)
+        @test all(isnan, model.all_coef)
+        @test all(isnan, model.all_se)
+        @test all(isnan, model.all_psi)
+        @test !has_bootstrapped(model)
     end
 
     @testset "Sample splitting edge cases" begin
@@ -208,5 +228,13 @@ LogisticClassifier = @load LogisticClassifier pkg = MLJLinearModels verbosity = 
 
         @test r_unnorm.dml_summary.normalize_ipw == false
         @test r_norm.dml_summary.normalize_ipw == true
+
+        treatment = Float32[0, 1, 0, 1, 0, 1]
+        propensity = Float32[0.2, 0.7, 0.4, 0.8, 0.3, 0.6]
+        adjusted = DoubleML._propensity_score_adjustment(
+            propensity, treatment, true; clipping_threshold = 0.01
+        )
+        @test mean(treatment ./ adjusted) ≈ 1.0f0
+        @test mean((1.0f0 .- treatment) ./ (1.0f0 .- adjusted)) ≈ 1.0f0
     end
 end

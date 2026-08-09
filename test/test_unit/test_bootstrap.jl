@@ -316,6 +316,17 @@ end
         bootstrap!(model; n_rep_boot = 100, method = :normal, rng = rng)
         boot_t_first = copy(model.boot_t_stat)
 
+        # Failed re-bootstrap attempts preserve the previous valid result.
+        boot_method_first = model.boot_method
+        n_rep_boot_first = model.n_rep_boot
+        @test_throws ArgumentError bootstrap!(
+            model; n_rep_boot = 200, method = :invalid, rng = StableRNG(123)
+        )
+        @test model.boot_t_stat == boot_t_first
+        @test model.boot_method === boot_method_first
+        @test model.n_rep_boot == n_rep_boot_first
+        @test has_bootstrapped(model)
+
         bootstrap!(model; n_rep_boot = 200, method = :normal, rng = rng)
         @test has_bootstrapped(model)
         @test size(model.boot_t_stat) == (200, 1, 1)  # Should have new size

@@ -101,18 +101,27 @@ function DoubleMLPLR(
 end
 
 """
-    fit!(obj::DoubleMLPLR; verbose=0, max_iter=1, tol=1e-4, force=false)
+    fit!(obj::DoubleMLPLR; verbose=0, max_iter=1, tol=1e-4, force=false, rng=Random.default_rng())
 
 Fit the DoubleML PLR model using cross-fitting.
+
+The `rng` keyword controls sample splitting only. Randomness internal to the
+MLJ learners is configured on the learners themselves.
 """
 function MLJ.fit!(
         obj::DoubleMLPLR{T}; verbose::Int = 0, max_iter::Int = 1,
-        tol::Real = 1.0e-4, force::Bool = false
+        tol::Real = 1.0e-4, force::Bool = false,
+        rng::AbstractRNG = Random.default_rng()
     ) where {T}
     if isfitted(obj)
         !force && (@warn "Model already fitted. Use force=true to refit."; return obj)
         @warn "Forcing refit."
     end
+
+    _reset_fit_state!(obj)
+    obj.fitted_learners_l = MLJ.Machine[]
+    obj.fitted_learners_m = MLJ.Machine[]
+    obj.fitted_learners_g = MLJ.Machine[]
 
     if verbose > 0
         score_name = obj.score_obj isa PartiallingOutScore ? "partialling out" : "IV-type"
@@ -121,7 +130,7 @@ function MLJ.fit!(
     end
 
     n_obs = obj.data.n_obs
-    all_smpls = draw_sample_splitting(n_obs, obj.n_folds, obj.n_rep)
+    all_smpls = draw_sample_splitting(n_obs, obj.n_folds, obj.n_rep; rng = rng)
 
     X = DataFrame(obj.data.x, obj.data.x_cols)
     Y = obj.data.y
@@ -129,10 +138,6 @@ function MLJ.fit!(
 
     # Pre-coerce treatment variable for ml_m to avoid per-fold coercion overhead
     D_coerced = coerce_target(D, obj.ml_m)
-
-    obj.fitted_learners_l = MLJ.Machine[]
-    obj.fitted_learners_m = MLJ.Machine[]
-    obj.fitted_learners_g = MLJ.Machine[]
 
     if obj.score_obj isa PartiallingOutScore
         _fit_partialling_out!(obj, X, Y, D, D_coerced, all_smpls, n_obs, verbose)

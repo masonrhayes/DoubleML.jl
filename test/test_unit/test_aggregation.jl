@@ -2,6 +2,7 @@ using DoubleML
 using Test
 using StableRNGs
 using Statistics
+using Distributions
 using MLJ
 using MLJLinearModels
 
@@ -95,16 +96,14 @@ LogisticClassifier = @load LogisticClassifier pkg = MLJLinearModels verbosity = 
             model1 = DoubleMLPLR(data1, LinearRegressor(), LinearRegressor(); n_folds = 3, n_rep = 2)
             model2 = DoubleMLPLR(data2, LinearRegressor(), LinearRegressor(); n_folds = 3, n_rep = 2)
 
-            fit!(model1)
-            fit!(model2)
+            fit!(model1; rng = StableRNG(2024))
+            fit!(model2; rng = StableRNG(2024))
 
-            # Both should be fitted with valid results
             @test isfitted(model1)
             @test isfitted(model2)
-            @test length(model1.all_coef) == 2
-            @test length(model2.all_coef) == 2
-            @test all(!isnan, model1.all_coef)
-            @test all(!isnan, model2.all_coef)
+            @test model1.all_coef == model2.all_coef
+            @test model1.all_se == model2.all_se
+            @test model1.all_psi == model2.all_psi
         end
     end
 
@@ -144,6 +143,18 @@ LogisticClassifier = @load LogisticClassifier pkg = MLJLinearModels verbosity = 
             # ATTE is harder to estimate, so use high tolerance
             @test abs(model.coef - 0.5) < 1.5
         end
+
+        @testset "Reproducibility with same fit RNG" begin
+            model1 = DoubleMLIRM(data, LinearRegressor(), LogisticClassifier(); n_folds = 3, n_rep = 2)
+            model2 = DoubleMLIRM(data, LinearRegressor(), LogisticClassifier(); n_folds = 3, n_rep = 2)
+
+            fit!(model1; rng = StableRNG(2025))
+            fit!(model2; rng = StableRNG(2025))
+
+            @test model1.all_coef == model2.all_coef
+            @test model1.all_se == model2.all_se
+            @test model1.all_psi == model2.all_psi
+        end
     end
 
     @testset "LPLR all_coef and all_se fields" begin
@@ -154,7 +165,7 @@ LogisticClassifier = @load LogisticClassifier pkg = MLJLinearModels verbosity = 
                 data, LogisticClassifier(), LinearRegressor(), LinearRegressor();
                 score = :nuisance_space, n_folds = 3, n_rep = 1
             )
-            fit!(model)
+            fit!(model; rng = StableRNG(2026))
 
             @test length(model.all_coef) == 1
             @test length(model.all_se) == 1
@@ -190,6 +201,24 @@ LogisticClassifier = @load LogisticClassifier pkg = MLJLinearModels verbosity = 
 
         # Use loose tolerance due to Float32 precision
         @test model.se ≈ expected_se rtol = 1.0e-5
+    end
+
+
+    @testset "Pointwise confidence interval aggregation" begin
+        data = make_plr_CCDDHNR2018(100; alpha = 0.5, rng = rng)
+        model = DoubleMLPLR(data, LinearRegressor(), LinearRegressor(); n_folds = 2, n_rep = 3)
+        model.all_coef .= Float32[0.0, 1.0, 10.0]
+        model.all_se .= Float32[1.0, 10.0, 1.0]
+        model.coef, model.se = DoubleML._aggregate_coefs_and_ses(model.all_coef, model.all_se)
+
+        level = 0.95
+        z = quantile(Normal(), 1 - (1 - level) / 2)
+        expected = hcat(
+            median(model.all_coef .- z .* model.all_se),
+            median(model.all_coef .+ z .* model.all_se)
+        )
+
+        @test confint(model; level = level) ≈ expected
     end
 
     @testset "Different n_rep values produce different results" begin

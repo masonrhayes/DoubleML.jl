@@ -201,21 +201,29 @@ function _validate_lplr_learners(
 end
 
 """
-    fit!(obj::DoubleMLLPLR; verbose=0, force=false)
+    fit!(obj::DoubleMLLPLR; verbose=0, force=false, rng=Random.default_rng())
 
 Fit the DoubleML LPLR model using double cross-fitting with bracket-based root finding.
 
 # Arguments
 - `verbose::Int=0`: Verbosity level
 - `force::Bool=false`: Force refit if already fitted
+- `rng::AbstractRNG=Random.default_rng()`: Random number generator for sample splitting
 """
 function MLJ.fit!(
-        obj::DoubleMLLPLR{T}; verbose::Int = 0, force::Bool = false
+        obj::DoubleMLLPLR{T}; verbose::Int = 0, force::Bool = false,
+        rng::AbstractRNG = Random.default_rng()
     ) where {T}
     if isfitted(obj)
         !force && (@warn "Model already fitted. Use force=true to refit."; return obj)
         @warn "Forcing refit."
     end
+
+    _reset_fit_state!(obj)
+    obj.fitted_learners_M = MLJ.Machine[]
+    obj.fitted_learners_t = MLJ.Machine[]
+    obj.fitted_learners_m = MLJ.Machine[]
+    obj.fitted_learners_a = MLJ.Machine[]
 
     if verbose > 0
         score_name = obj.score_obj isa NuisanceSpaceScore ? "nuisance_space" : "instrument"
@@ -234,8 +242,8 @@ function MLJ.fit!(
     n_obs = obj.data.n_obs
 
     # Create double sample splitting (outer and inner folds)
-    all_smpls_outer = draw_sample_splitting(n_obs, obj.n_folds, obj.n_rep)
-    all_smpls_inner = draw_sample_splitting(n_obs, obj.n_folds_inner, obj.n_rep)
+    all_smpls_outer = draw_sample_splitting(n_obs, obj.n_folds, obj.n_rep; rng = rng)
+    all_smpls_inner = draw_sample_splitting(n_obs, obj.n_folds_inner, obj.n_rep; rng = rng)
 
     X = DataFrame(obj.data.x, obj.data.x_cols)
     Y = obj.data.y
@@ -243,11 +251,6 @@ function MLJ.fit!(
     D_coerced = coerce_target(obj.data.d, obj.ml_m)
     # Keep numeric version for internal calculations
     D_numeric = T.(to_numeric(obj.data.d))
-
-    obj.fitted_learners_M = MLJ.Machine[]
-    obj.fitted_learners_t = MLJ.Machine[]
-    obj.fitted_learners_m = MLJ.Machine[]
-    obj.fitted_learners_a = MLJ.Machine[]
 
     # Handle tuning - full sample tuning (n_folds_tune == 0)
     if obj.n_folds_tune == 0
