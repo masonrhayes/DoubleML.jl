@@ -68,7 +68,7 @@ md"""
 
 In practice, however, there are a few issues that cross-fitting does not resolve: 
 - First, in the presence of large data, a **practical** issue is that cross-fitting can be computationally costly as it requires fitting a model at least 1 time for each fold of the cross-validation set. 
-- Second, and more fundamentally, a **theoretical** issue is that cross-fitting does not account for *uncertainty* in the predictions $\hat{\eta}$, but rather treats them as point estimates. Any uncertainty in these point estimates is not propogated into the causal inference for $\theta$. Thus, FDML estimates of the causal parameter, $\hat{\theta}$, often do not have good *coverage* - e.g., using simulated data where the true causal effect is known, FDML often leads to confidence intervals which do not include the true effect.
+- Second, and more fundamentally, a **theoretical** issue is that cross-fitting does not account for *uncertainty* in the predictions $\hat{\eta}$, but rather treats them as point estimates. Any uncertainty in these point estimates is not propagated into the causal inference for $\theta$. Thus, FDML estimates of the causal parameter, $\hat{\theta}$, often do not have good *coverage* - e.g., using simulated data where the true causal effect is known, FDML often leads to 95% confidence intervals which include the true effect less than 95% of the time.
 
 As shown in this notebook, however, over-fitting bias can be alleviated without cross-fitting! If we instead think of our estimates for $\hat{\eta}$ as following some *joint probability distribution*, we can simply fit one time, using one holdout set for the conformal prediction calibration; we can then directly account for the uncertainty in our nuisance estimates, and propagate this uncertainty through to the final inference stage.
 
@@ -113,13 +113,13 @@ md"""
 
 # ╔═╡ 167599c7-70ad-43b4-abb9-d68897286e94
 begin
-    seed = 33
+    seed = 1330
     rng = StableRNG(seed)
 
     true_alpha = 0.5
 
     n_obs = 500
-    dim_x = 250
+    dim_x = 200
     data = make_plr_CCDDHNR2018(n_obs; dim_x = dim_x, alpha = true_alpha, rng = rng)
 end
 
@@ -134,7 +134,7 @@ begin
     Random.seed!(seed)
 
     # Set the coverage for the nuisance models.
-    coverage = 0.999
+    coverage = 0.95
 
     ml_l = conformal_model(
         RandomForestRegressor(rng = rng);
@@ -186,12 +186,70 @@ md"""
 !!! warning
     This package, and the implementation of Conformal Double Machine Learning, remain experimental. 
 
-Currently, the implementation of CDML works by:
+Currently, the main implementation of CDML (`DoubleMLPLRConformal`) works by:
 - Training the conformal models without cross-fitting. Users may specify `train_ratio` for some conformal prediction methods, but *predictions* are made on the full dataset
 - Obtaining conformal predictions (i.e, a tuple of a lower and upper bound for each prediction). These conformal predictions guaranteed a user-defined coverage level (e.g., 95%).
 - Use Monte Carlo sampling from conformal prediction intervals to propagate uncertainty, using Beta(2,2) marginals with Gaussian copula to account for correlation between the uncertainties in predictions for the outcome $\hat{l}(x)$ and treatment $\hat{m}(x)$.
 
 """
+
+# ╔═╡ 26b160b8-9dd9-46b2-884b-fcf174c0a3b3
+md"""
+## Alternative CDML variant using the Unscented Transform (UT)
+
+Monte Carlo sampling can be computationally intensive and stochastic. Instead of MC, this variant propagates the uncertainty in the nuisance parameters **deterministically** through the DML2 score function using the [unscented transform](https://en.wikipedia.org/wiki/Unscented_transform) at second-order accuracy.
+
+The UT variant of the CDML model (`DoubleMLPLRConformalUT`) currently works as follows:
+
+### Workflow
+1. **Conformal model fitting**: The conformal-wrapped learners `ml_l` and `ml_m` are trained to obtain prediction intervals. Users may specify `n_folds` and `n_rep` for K-fold cross-fitting (default `n_folds=1` fits on the full dataset).
+2. **Conformal predictions**: A lower and upper bound are obtained for each prediction, guaranteeing the user-defined coverage level (e.g., 95%).
+3. **Uncertainty modeling**: Prediction errors within each interval are modeled with **Beta(2,2) marginals**. The correlation between the errors in $\hat{l}(x)$ and $\hat{m}(x)$ is estimated from residuals and its uncertainty is represented via the **Fisher z-transform** $z \sim N(\hat{z}, 1/(n-3))$.
+4. **Closed-form moment propagation**: For any fixed correlation, the means and covariances of the aggregated score statistics $(\bar{A}, \bar{B})$ are computed in **closed form** (O(n)) using a Gaussian copula (Isserlis cross-moments).
+5. **2D Unscented Transform**: The score function is propagated via the standard 2D UT (5 sigma points), yielding a mean that corrects for Jensen bias and a variance that captures second-order effects.
+6. **Correlation uncertainty integration**: The UT is evaluated at **Gauss-Hermite quadrature** points (default 3, optional 5) over the Fisher z-transform distribution. The final result mixes these components by the law of total variance.
+7. **Combined inference**: The reported coefficient is the UT mean. The reported standard error combines the standard DML sampling SE with the conformal-only UT variance: $SE_{total} = \sqrt{SE_{DML}^2 + Var_{UT}}$.
+
+
+"""
+
+# ╔═╡ e8b99942-b27d-4c0a-852d-72740beda0fd
+# Bonus: using the Unscented Transform for uncertainty propagation
+begin
+    Random.seed!(seed)
+
+    # Create and fit conformal model (UT)
+    model_conformal_ut = Ext.DoubleMLPLRConformalUT(
+        data,
+        conformal_model(
+            RandomForestRegressor(rng = rng);
+            method = :simple_inductive,
+            coverage = coverage
+        ),
+        conformal_model(
+            RandomForestRegressor(rng = rng);
+            method = :simple_inductive,
+            coverage = coverage
+        );
+        n_gh = 5
+    )
+    @time Ext.fit!(model_conformal_ut, rng = rng, verbose = 0)
+
+    coeftable(model_conformal_ut)
+end
+
+# ╔═╡ 521441e3-31cf-46fb-94c2-dd75f4a265b8
+# Comparing:
+coeftable(model)
+
+# ╔═╡ c537f93c-4495-48eb-8cbc-2b26eb03fdcf
+coeftable(model_conformal)
+
+# ╔═╡ 80bb8d32-8338-45e8-b629-8ddce33ac74b
+coeftable(model_conformal_ut)
+
+# ╔═╡ e6414752-84ff-4974-986f-2d688eba21dd
+model_conformal_ut
 
 # ╔═╡ Cell order:
 # ╟─67af2dce-2534-11f1-8d5b-d7a2267620e9
@@ -214,3 +272,9 @@ Currently, the implementation of CDML works by:
 # ╠═b6c5aed9-1be4-4840-9561-fce18f74e58f
 # ╟─31054492-0276-402f-95d1-674193c735d2
 # ╟─58045322-9e8c-4ed8-9f7c-445a4b8b2a70
+# ╟─26b160b8-9dd9-46b2-884b-fcf174c0a3b3
+# ╠═e8b99942-b27d-4c0a-852d-72740beda0fd
+# ╠═521441e3-31cf-46fb-94c2-dd75f4a265b8
+# ╠═c537f93c-4495-48eb-8cbc-2b26eb03fdcf
+# ╠═80bb8d32-8338-45e8-b629-8ddce33ac74b
+# ╟─e6414752-84ff-4974-986f-2d688eba21dd

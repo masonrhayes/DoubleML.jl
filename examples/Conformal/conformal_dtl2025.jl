@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.20.24
+# v1.0.3
 
 using Markdown
 using InteractiveUtils
@@ -157,7 +157,7 @@ begin
     Random.seed!(seed)
 
     # Set the coverage for the nuisance models.
-    coverage = 0.999
+    coverage = 0.99
 
     ml_l = conformal_model(
         EvoTreeRegressor(seed = seed);
