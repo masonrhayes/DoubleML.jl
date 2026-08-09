@@ -58,6 +58,17 @@ LogisticClassifier = @load LogisticClassifier pkg = MLJLinearModels verbosity = 
         end
     end
 
+    @testset "_compute_se function" begin
+        psi = Float32[1, -1, 2, -2]
+        psi_a = fill(-1.0f0, length(psi))
+        expected = sqrt(mean(abs2, psi) / length(psi))
+
+        @test DoubleML._compute_se(psi, psi_a) ≈ expected
+        @test DoubleML._compute_se(psi, psi_a) isa Float32
+        @test_throws DimensionMismatch DoubleML._compute_se(psi, psi_a[1:2])
+        @test_throws ArgumentError DoubleML._compute_se(Float32[], Float32[])
+    end
+
     @testset "PLR all_coef and all_se fields" begin
         data = make_plr_CCDDHNR2018(200; alpha = 0.5, rng = rng)
 
@@ -83,6 +94,10 @@ LogisticClassifier = @load LogisticClassifier pkg = MLJLinearModels verbosity = 
 
             # Aggregated coef should be median of all_coef
             @test model.coef ≈ median(model.all_coef)
+            for r in 1:model.n_rep
+                expected_psi = model.all_psi_a[:, r] .* model.all_coef[r] .+ model.all_psi_b[:, r]
+                @test model.all_psi[:, r] ≈ expected_psi
+            end
         end
 
         @testset "Reproducibility with same seed" begin
@@ -131,6 +146,10 @@ LogisticClassifier = @load LogisticClassifier pkg = MLJLinearModels verbosity = 
             @test all(>=(0), model.all_se)
 
             @test model.coef ≈ median(model.all_coef)
+            for r in 1:model.n_rep
+                expected_psi = model.all_psi_a[:, r] .* model.all_coef[r] .+ model.all_psi_b[:, r]
+                @test model.all_psi[:, r] ≈ expected_psi
+            end
         end
 
         @testset "Multiple repetitions - ATTE" begin

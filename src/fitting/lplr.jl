@@ -352,10 +352,7 @@ function MLJ.fit!(
         all_psi_a[r] = psi_a_rep
 
         # Compute SE for this repetition
-        J_rep = mean(psi_a_rep)
-        gamma_hat_rep = mean(psi_rep .^ 2)
-        sigma2_hat_rep = gamma_hat_rep / (n_obs * J_rep^2)
-        obj.all_se[r] = sqrt(sigma2_hat_rep)
+        obj.all_se[r] = _compute_se(psi_rep, psi_a_rep)
     end
 
     # Aggregate across repetitions using median-based aggregation

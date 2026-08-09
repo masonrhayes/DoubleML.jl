@@ -204,16 +204,12 @@ function MLJ.fit!(
         ml_m, _ = _get_best_model(ml_m, X, D, verbose; model_name = "ml_m")
     end
 
-    D_num = to_numeric(D)
-    E_D_global = mean(D_num)
+    D_numeric = T.(to_numeric(D))
+    E_D_global = mean(D_numeric)
 
     eval_g0_folds = NamedTuple[]
     eval_g1_folds = NamedTuple[]
     eval_m_folds = NamedTuple[]
-
-    # Storage for per-repetition psi components
-    all_psi_a = Vector{Vector{T}}(undef, obj.n_rep)
-    all_psi_b = Vector{Vector{T}}(undef, obj.n_rep)
 
     for r in 1:obj.n_rep
         smpls = all_smpls[r]
@@ -232,8 +228,11 @@ function MLJ.fit!(
             rep_ml_m, _ = _get_best_model(obj.ml_m, X[train_idx_tune, :], D[train_idx_tune], verbose; model_name = "ml_m", context = "for repetition $r")
         end
 
-        psi_a_rep = zeros(T, n_obs)
-        psi_b_rep = zeros(T, n_obs)
+        psi_a_rep = @view obj.all_psi_a[:, r]
+        psi_b_rep = @view obj.all_psi_b[:, r]
+        psi_rep = @view obj.all_psi[:, r]
+        fill!(psi_a_rep, zero(T))
+        fill!(psi_b_rep, zero(T))
         g_hat0_rep = Vector{T}(undef, n_obs)
         g_hat1_rep = zeros(T, n_obs)
         m_hat_rep = Vector{T}(undef, n_obs)
@@ -297,50 +296,36 @@ function MLJ.fit!(
         end
 
         m_hat_adj_rep = _propensity_score_adjustment(
-            m_hat_rep, D_num, obj.normalize_ipw;
+            m_hat_rep, D_numeric, obj.normalize_ipw;
             clipping_threshold = obj.clipping_threshold
         )
 
         if obj.score_obj isa ATEScore
             psi_a, psi_b = compute_score(
-                obj.score_obj, Y, D, g_hat0_rep, g_hat1_rep, m_hat_adj_rep
+                obj.score_obj, Y, D_numeric, g_hat0_rep, g_hat1_rep, m_hat_adj_rep
             )
         else
             if E_D_global == 0
                 error("No treated observations. Cannot compute ATTE.")
             end
             psi_a, psi_b = compute_score(
-                obj.score_obj, Y, D, g_hat0_rep, g_hat1_rep, m_hat_adj_rep, E_D_global
+                obj.score_obj, Y, D_numeric, g_hat0_rep, g_hat1_rep,
+                m_hat_adj_rep, E_D_global
             )
         end
         psi_a_rep .= psi_a
         psi_b_rep .= psi_b
 
-        all_psi_a[r] = psi_a_rep
-        all_psi_b[r] = psi_b_rep
-
         # Solve DML2 for this repetition
         obj.all_coef[r] = dml2_solve(psi_a_rep, psi_b_rep)
 
         # Compute SE for this repetition
-        psi_rep = @. (psi_a_rep * obj.all_coef[r]) + psi_b_rep
-        J_rep = mean(psi_a_rep)
-        gamma_hat_rep = mean(psi_rep .^ 2)
-        sigma2_hat_rep = gamma_hat_rep / (n_obs * J_rep^2)
-        obj.all_se[r] = sqrt(sigma2_hat_rep)
+        @. psi_rep = psi_a_rep * obj.all_coef[r] + psi_b_rep
+        obj.all_se[r] = _compute_se(psi_rep, psi_a_rep)
     end
 
     # Aggregate across repetitions using median-based aggregation
     obj.coef, obj.se = _aggregate_coefs_and_ses(obj.all_coef, obj.all_se)
-
-    # Store all psi components as matrices (n_obs × n_rep)
-    obj.all_psi_a = hcat(all_psi_a...)
-    obj.all_psi_b = hcat(all_psi_b...)
-
-    # Compute psi at per-repetition coefficient
-    for r in 1:obj.n_rep
-        obj.all_psi[:, r] = @. obj.all_psi_a[:, r] * obj.all_coef[r] + obj.all_psi_b[:, r]
-    end
 
     if obj.score_obj isa ATEScore
         obj.learner_performance = (

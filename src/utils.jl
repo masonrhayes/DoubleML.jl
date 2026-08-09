@@ -251,6 +251,21 @@ function _aggregate_performance(eval_results::Vector{<:NamedTuple})
 end
 
 """
+    _compute_se(psi, psi_a)
+
+Compute the standard error from score values and their derivative.
+"""
+function _compute_se(psi::AbstractVector, psi_a::AbstractVector)
+    length(psi) == length(psi_a) || throw(
+        DimensionMismatch("psi and psi_a must have the same length")
+    )
+    isempty(psi) && throw(ArgumentError("psi and psi_a must not be empty"))
+
+    jacobian = mean(psi_a)
+    return sqrt(mean(abs2, psi) / (length(psi) * abs2(jacobian)))
+end
+
+"""
     _aggregate_coefs_and_ses(all_coefs::Vector{T}, all_ses::Vector{T}) where T -> (coef, se)
 
 Aggregate coefficient and standard error estimates across sample splitting repetitions.

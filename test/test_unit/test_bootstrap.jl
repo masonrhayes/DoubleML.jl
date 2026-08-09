@@ -108,7 +108,7 @@ end
 
         data = make_plr_CCDDHNR2018(n_obs; alpha = 0.5, rng = rng)
         model = DoubleMLPLR(data, LinearRegressor(), LinearRegressor(); n_folds = 3, n_rep = 1)
-        fit!(model)
+        fit!(model; rng = rng)
 
         # Bootstrap first
         bootstrap!(model; n_rep_boot = 500, method = :normal, rng = rng)
@@ -120,10 +120,9 @@ end
         ci_joint = confint(model; joint = true, level = 0.95)
         @test size(ci_joint) == (1, 2)
 
-        # Joint CI should be wider than pointwise CI
-        ci_pointwise = confint(model; joint = false, level = 0.95)
-        @test ci_joint[1] <= ci_pointwise[1]  # Lower bound should be lower
-        @test ci_joint[2] >= ci_pointwise[2]  # Upper bound should be higher
+        critical_value = quantile(abs.(vec(model.boot_t_stat[:, 1, 1])), 0.95)
+        @test ci_joint[1] ≈ model.all_coef[1] - critical_value * model.all_se[1]
+        @test ci_joint[2] ≈ model.all_coef[1] + critical_value * model.all_se[1]
 
         # Test confint with level argument directly
         ci_90 = confint(model, 0.9)

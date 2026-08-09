@@ -307,10 +307,7 @@ function MLJ.fit!(
     # Standard coefficient and SE computation (for checking)
     obj.standard_dml_coef = DoubleML.dml2_solve(psi_a, psi_b)
     psi = @. (psi_a * obj.standard_dml_coef) + psi_b
-    J = mean(psi_a)
-    gamma_hat = mean(psi .^ 2)
-    sigma2_hat = gamma_hat / (n_obs * J^2)
-    obj.standard_dml_se = sqrt(sigma2_hat)
+    obj.standard_dml_se = DoubleML._compute_se(psi, psi_a)
 
 
     # Estimate correlation between l and m nuisance uncertainties
