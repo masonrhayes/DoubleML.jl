@@ -153,15 +153,26 @@ function DoubleMLIRM(
 end
 
 """
-    fit!(obj::DoubleMLIRM; verbose=0, force=false)
+    fit!(obj::DoubleMLIRM; verbose=0, force=false, rng=Random.default_rng())
 
 Fit the DoubleML IRM model using cross-fitting.
+
+The `rng` keyword controls sample splitting only. Randomness internal to the
+MLJ learners is configured on the learners themselves.
 """
-function MLJ.fit!(obj::DoubleMLIRM{T}; verbose::Int = 0, force::Bool = false) where {T}
+function MLJ.fit!(
+        obj::DoubleMLIRM{T}; verbose::Int = 0, force::Bool = false,
+        rng::AbstractRNG = Random.default_rng()
+    ) where {T}
     if isfitted(obj)
         !force && (@warn "Model already fitted. Use force=true to refit."; return obj)
         @warn "Forcing refit."
     end
+
+    _reset_fit_state!(obj)
+    obj.fitted_learners_g0 = MLJ.Machine[]
+    obj.fitted_learners_g1 = MLJ.Machine[]
+    obj.fitted_learners_m = MLJ.Machine[]
 
     if verbose > 0
         @info "Fitting DoubleMLIRM with $(obj.n_folds)-fold cross-fitting, " *
@@ -178,12 +189,8 @@ function MLJ.fit!(obj::DoubleMLIRM{T}; verbose::Int = 0, force::Bool = false) wh
     Y_coerced = coerce_target(Y, obj.ml_g)
     D_coerced = coerce_target(D, obj.ml_m)
 
-    all_cond_smpls = get_conditional_sample_splitting(n_obs, obj.n_folds, obj.n_rep, D)
-    all_smpls = draw_sample_splitting(n_obs, obj.n_folds, obj.n_rep)
-
-    obj.fitted_learners_g0 = MLJ.Machine[]
-    obj.fitted_learners_g1 = MLJ.Machine[]
-    obj.fitted_learners_m = MLJ.Machine[]
+    all_smpls = draw_sample_splitting(n_obs, obj.n_folds, obj.n_rep; rng = rng)
+    all_cond_smpls = get_conditional_sample_splitting(all_smpls, D)
 
     ml_g = obj.ml_g
     ml_m = obj.ml_m
@@ -197,16 +204,12 @@ function MLJ.fit!(obj::DoubleMLIRM{T}; verbose::Int = 0, force::Bool = false) wh
         ml_m, _ = _get_best_model(ml_m, X, D, verbose; model_name = "ml_m")
     end
 
-    D_num = to_numeric(D)
-    E_D_global = mean(D_num)
+    D_numeric = T.(to_numeric(D))
+    E_D_global = mean(D_numeric)
 
     eval_g0_folds = NamedTuple[]
     eval_g1_folds = NamedTuple[]
     eval_m_folds = NamedTuple[]
-
-    # Storage for per-repetition psi components
-    all_psi_a = Vector{Vector{T}}(undef, obj.n_rep)
-    all_psi_b = Vector{Vector{T}}(undef, obj.n_rep)
 
     for r in 1:obj.n_rep
         smpls = all_smpls[r]
@@ -225,17 +228,22 @@ function MLJ.fit!(obj::DoubleMLIRM{T}; verbose::Int = 0, force::Bool = false) wh
             rep_ml_m, _ = _get_best_model(obj.ml_m, X[train_idx_tune, :], D[train_idx_tune], verbose; model_name = "ml_m", context = "for repetition $r")
         end
 
-        psi_a_rep = zeros(T, n_obs)
-        psi_b_rep = zeros(T, n_obs)
+        psi_a_rep = @view obj.all_psi_a[:, r]
+        psi_b_rep = @view obj.all_psi_b[:, r]
+        psi_rep = @view obj.all_psi[:, r]
+        fill!(psi_a_rep, zero(T))
+        fill!(psi_b_rep, zero(T))
+        g_hat0_rep = Vector{T}(undef, n_obs)
+        g_hat1_rep = zeros(T, n_obs)
+        m_hat_rep = Vector{T}(undef, n_obs)
 
         for (fold_idx, (train_idx, test_idx)) in enumerate(smpls)
-            train_idx_d0, test_idx_d0 = smpls_d0[fold_idx]
-            train_idx_d1, test_idx_d1 = smpls_d1[fold_idx]
+            train_idx_d0, _ = smpls_d0[fold_idx]
+            train_idx_d1, _ = smpls_d1[fold_idx]
 
             X_test = X[test_idx, :]
             Y_test = Y[test_idx]
             D_test = D[test_idx]
-            D_test_numeric = D_num[test_idx]
 
             if length(train_idx_d0) > 0
                 X_train_control = X[train_idx_d0, :]
@@ -247,6 +255,7 @@ function MLJ.fit!(obj::DoubleMLIRM{T}; verbose::Int = 0, force::Bool = false) wh
             else
                 error("No control observations in training fold $fold_idx.")
             end
+            g_hat0_rep[test_idx] .= g_hat0
 
             if obj.score_obj isa ATEScore
                 if length(train_idx_d1) > 0
@@ -259,9 +268,7 @@ function MLJ.fit!(obj::DoubleMLIRM{T}; verbose::Int = 0, force::Bool = false) wh
                 else
                     error("No treated observations in training fold $fold_idx.")
                 end
-            else
-                g_hat1 = zeros(T, length(g_hat0))
-                g1_pred_raw = g_hat1
+                g_hat1_rep[test_idx] .= g_hat1
             end
 
             X_train = X[train_idx, :]
@@ -270,13 +277,9 @@ function MLJ.fit!(obj::DoubleMLIRM{T}; verbose::Int = 0, force::Bool = false) wh
             MLJ.fit!(mach_m, verbosity = verbose)
             push!(obj.fitted_learners_m, mach_m)
             m_hat, m_pred_raw = predict_nuisance(mach_m, X_test, "m(X)")
+            m_hat_rep[test_idx] .= m_hat
 
             _validate_propensity_scores(m_hat, fold_idx, Float64(obj.clipping_threshold))
-
-            m_hat_adj = _propensity_score_adjustment(
-                m_hat, D_test_numeric, obj.normalize_ipw;
-                clipping_threshold = obj.clipping_threshold
-            )
 
             idx_control_test = findall(D_test .== 0)
             idx_treated_test = findall(D_test .== 1)
@@ -290,45 +293,39 @@ function MLJ.fit!(obj::DoubleMLIRM{T}; verbose::Int = 0, force::Bool = false) wh
             end
 
             push!(eval_m_folds, _evaluate_learner(mach_m, D_test, m_pred_raw))
-
-            if obj.score_obj isa ATEScore
-                psi_a, psi_b = compute_score(obj.score_obj, Y_test, D_test, g_hat0, g_hat1, m_hat_adj)
-            else
-                if E_D_global == 0
-                    error("No treated observations. Cannot compute ATTE.")
-                end
-                psi_a, psi_b = compute_score(obj.score_obj, Y_test, D_test, g_hat0, g_hat1, m_hat_adj, E_D_global)
-            end
-
-            psi_a_rep[test_idx] .= psi_a
-            psi_b_rep[test_idx] .= psi_b
         end
 
-        all_psi_a[r] = psi_a_rep
-        all_psi_b[r] = psi_b_rep
+        m_hat_adj_rep = _propensity_score_adjustment(
+            m_hat_rep, D_numeric, obj.normalize_ipw;
+            clipping_threshold = obj.clipping_threshold
+        )
+
+        if obj.score_obj isa ATEScore
+            psi_a, psi_b = compute_score(
+                obj.score_obj, Y, D_numeric, g_hat0_rep, g_hat1_rep, m_hat_adj_rep
+            )
+        else
+            if E_D_global == 0
+                error("No treated observations. Cannot compute ATTE.")
+            end
+            psi_a, psi_b = compute_score(
+                obj.score_obj, Y, D_numeric, g_hat0_rep, g_hat1_rep,
+                m_hat_adj_rep, E_D_global
+            )
+        end
+        psi_a_rep .= psi_a
+        psi_b_rep .= psi_b
 
         # Solve DML2 for this repetition
         obj.all_coef[r] = dml2_solve(psi_a_rep, psi_b_rep)
 
         # Compute SE for this repetition
-        psi_rep = @. (psi_a_rep * obj.all_coef[r]) + psi_b_rep
-        J_rep = mean(psi_a_rep)
-        gamma_hat_rep = mean(psi_rep .^ 2)
-        sigma2_hat_rep = gamma_hat_rep / (n_obs * J_rep^2)
-        obj.all_se[r] = sqrt(sigma2_hat_rep)
+        @. psi_rep = psi_a_rep * obj.all_coef[r] + psi_b_rep
+        obj.all_se[r] = _compute_se(psi_rep, psi_a_rep)
     end
 
     # Aggregate across repetitions using median-based aggregation
     obj.coef, obj.se = _aggregate_coefs_and_ses(obj.all_coef, obj.all_se)
-
-    # Store all psi components as matrices (n_obs × n_rep)
-    obj.all_psi_a = hcat(all_psi_a...)
-    obj.all_psi_b = hcat(all_psi_b...)
-
-    # Compute psi at per-repetition coefficient
-    for r in 1:obj.n_rep
-        obj.all_psi[:, r] = @. obj.all_psi_a[:, r] * obj.all_coef[r] + obj.all_psi_b[:, r]
-    end
 
     if obj.score_obj isa ATEScore
         obj.learner_performance = (

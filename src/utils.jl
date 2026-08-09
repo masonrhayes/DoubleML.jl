@@ -108,10 +108,14 @@ end
 
 """
     get_conditional_sample_splitting(n_obs, n_folds, n_rep, d; shuffle=true, rng)
+    get_conditional_sample_splitting(all_smpls, d)
 
 Create conditional sample splits for control (D=0) and treated (D=1) groups.
 
 Used for IRM where separate models are fit for each treatment group.
+
+Pass existing sample splits to ensure that the conditional and unconditional
+learners use the same outer folds.
 
 # Returns
 Vector of length `n_rep`, each a tuple (smpls_d0, smpls_d1).
@@ -122,6 +126,12 @@ function get_conditional_sample_splitting(
         shuffle::Bool = true, rng::AbstractRNG = Random.default_rng()
     )
     all_smpls = draw_sample_splitting(n_obs, n_folds, n_rep; shuffle = shuffle, rng = rng)
+
+    return get_conditional_sample_splitting(all_smpls, d)
+end
+
+function get_conditional_sample_splitting(all_smpls::AbstractVector, d::AbstractVector)
+    n_rep = length(all_smpls)
 
     all_cond_smpls = Vector{
         Tuple{
@@ -238,6 +248,21 @@ function _aggregate_performance(eval_results::Vector{<:NamedTuple})
     values = [e.value for e in eval_results]
     measure = eval_results[1].measure
     return (value = mean(values), measure = measure)
+end
+
+"""
+    _compute_se(psi, psi_a)
+
+Compute the standard error from score values and their derivative.
+"""
+function _compute_se(psi::AbstractVector, psi_a::AbstractVector)
+    length(psi) == length(psi_a) || throw(
+        DimensionMismatch("psi and psi_a must have the same length")
+    )
+    isempty(psi) && throw(ArgumentError("psi and psi_a must not be empty"))
+
+    jacobian = mean(psi_a)
+    return sqrt(mean(abs2, psi) / (length(psi) * abs2(jacobian)))
 end
 
 """

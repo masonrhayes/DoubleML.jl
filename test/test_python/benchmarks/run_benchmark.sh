@@ -13,20 +13,20 @@ cd "$(dirname "$0")"
 
 echo "Step 1/4: Running Julia benchmark..."
 echo "  This will generate data and time Julia DoubleML"
-julia --project=../.. benchmark_julia.jl
+julia --project=../.. --threads=24 benchmark_julia.jl
 echo ""
 echo "✓ Julia benchmark complete"
 echo ""
 
 echo "Step 2/4: Running Python benchmark..."
 echo "  This will load the same data and time Python DoubleML"
-python benchmark_python.py
+uv run benchmark_python.py
 echo ""
 echo "✓ Python benchmark complete"
 echo ""
 
 echo "Step 3/4: Generating report..."
-julia --project=../.. generate_report.jl
+julia --project=../.. --threads=24 generate_report.jl
 echo ""
 echo "✓ Report generated"
 echo ""

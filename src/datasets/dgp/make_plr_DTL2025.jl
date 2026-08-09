@@ -1,5 +1,6 @@
 """
-    make_plr_DTL2025(n::Int, p::Int, sigma_epsilon::Real; alpha=2.0, rng=Random.default_rng())
+    make_plr_DTL2025(n::Int, p::Int, sigma_epsilon::Real; 
+                     alpha=2.0, rng=Random.default_rng(), return_type=:DoubleMLData)
 
 Generate synthetic data matching the simulation design from 
 DiTraglia & Liu (2025), Section 6, Table 1.
@@ -39,19 +40,15 @@ where:
 - `sigma_epsilon::Real`: Std dev of structural error ``\\epsilon \\in \\{1, 2, 4\\}``
 - `alpha::Real`: True causal effect (default: 2.0)
 - `rng::AbstractRNG`: Random number generator for reproducibility (default: `Random.default_rng()`)
+- `return_type::Symbol`: Return type, either `:DoubleMLData` (default) or `:DataFrame`
 
 # Returns
-- `Y::Vector{Float64}`: Outcome variable (length n)
-- `D::Vector{Float64}`: Treatment variable (length n)
-- `X::Matrix{Float64}`: Covariates (n×p matrix)
-- `alpha::Float64`: True causal effect (always 2.0)
-- `params::NamedTuple`: Ground truth parameters for validation/testing:
-  - `gamma::Vector{Float64}`: Treatment coefficients (``\\gamma = \\iota_p/\\sqrt{p}``)
-  - `beta::Vector{Float64}`: Outcome coefficients (drawn from ``N(\\mu_\\beta, \\sigma^2_\\beta\\cdot I)``)
-  - `mu_beta::Vector{Float64}`: Mean of ``\\beta`` distribution (``-\\gamma/2``)
-  - `sigma2_beta::Float64`: Variance of ``\\beta`` distribution (``1/p``)
-  - `V::Vector{Float64}`: Treatment errors
-  - `epsilon::Vector{Float64}`: Structural errors
+- `data::DoubleMLData`: A DoubleMLData object ready for DML analysis (default)
+- `df::DataFrame`: A DataFrame with columns `X1,...,Xp`, `y`, `d` (if `return_type=:DataFrame`)
+
+The true causal effect is always `alpha` (default: 2.0). Data are stored as `Float32` 
+for memory efficiency. Ground truth parameters (γ, β, errors) are not returned but 
+can be reconstructed from the DGP specification if needed for simulation studies.
 
 # Paper Reference
 Section 6, "Simulation Study", Equations (20)-(21):
@@ -70,20 +67,26 @@ The paper reports results for three values of ``\\sigma_\\epsilon``:
 All settings use n=200, p=100, and ``\\alpha=2``.
 
 # Examples
-
-```
-
-## Use with DoubleML
 ```julia
 using Random
 using DoubleML
 
-# Generate data
+# Generate data as DoubleMLData (default)
 data = make_plr_DTL2025(200, 100, 2.0)
 
+# Generate data as DataFrame
+df = make_plr_DTL2025(200, 100, 2.0; return_type=:DataFrame)
+
+# Reproducible generation
+rng = Xoshiro(123)
+data = make_plr_DTL2025(200, 100, 2.0; rng=rng)
 ```
 
 # Implementation Notes
+
+**Data types:**
+- Data are stored as `Float32` for memory efficiency
+- The true causal effect `alpha` is 2.0 (default) or user-specified
 
 **Randomness:**
 - The function generates new random draws for ``X``, ``\beta``, ``\epsilon``, and ``V`` in each call
@@ -136,16 +139,6 @@ function make_plr_DTL2025(
 
     # Construct outcome Y (Equation 5): Y = α·D + X'β + ε
     Y = alpha .* D + X * beta + epsilon
-
-    # Package ground truth parameters for validation/testing
-    params = (
-        gamma = gamma,
-        beta = beta,
-        mu_beta = mu_beta,
-        sigma2_beta = sigma2_beta,
-        V = V,
-        epsilon = epsilon,
-    )
 
     df = DataFrame(Float32.(X), [Symbol("X$i") for i in 1:p])
     df.y = Float32.(Y)

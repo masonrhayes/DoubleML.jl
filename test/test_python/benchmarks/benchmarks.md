@@ -1,6 +1,6 @@
 # DoubleML Performance Benchmark: Julia vs Python
 
-**Generated:** 2026-03-03T12:34:58.805
+**Generated:** 2026-08-08T11:35:17.322
 
 ## Hardware
 
@@ -28,37 +28,39 @@
 
 ## Timing Results
 
+![Median model fit time](benchmark_fit_time.png)
+
 ### Julia (DoubleML.jl)
 
 | Metric | Time (seconds) |
 |--------|----------------|
-| Median | 41.71s |
+| Median | 43.95s |
 ### Python (DoubleML)
 
 | Metric | Time (seconds) |
 |--------|----------------|
-| Median | 306.71s |
+| Median | 300.8s |
 
 ### Performance Comparison
 
 **Winner: Julia**
 
-- **Speedup Factor:** 7.35x (Julia is faster)
-- **Time Difference:** 264.99s
+- **Speedup Factor:** 6.84x (Julia is faster)
+- **Time Difference:** 256.85s
 
 ## Coefficient Estimates
 
 | Metric | Julia | Python | Difference |
 |--------|-------|--------|------------|
-| Coefficient | 0.487874 | 0.485514 | 0.00236 (0.47%) |
-| Std Error | 0.00314 | 0.003144 | 4.0e-6 (0.14%) |
+| Coefficient | 0.487116 | 0.485441 | 0.001675 (0.34%) |
+| Std Error | 0.003136 | 0.003144 | 8.0e-6 (0.26%) |
 
 **True Treatment Effect:** 0.5
 
 ### Accuracy Assessment
 
-- **Coefficient Accuracy:** Estimates differ by 0.47% from each other
-- **Standard Error Agreement:** SEs differ by 0.14%
+- **Coefficient Accuracy:** Estimates differ by 0.34% from each other
+- **Standard Error Agreement:** SEs differ by 0.26%
 
 ✓ Coefficient estimates are in good agreement (< 5% difference)
 ✓ Standard errors are in good agreement (< 10% difference)
@@ -72,9 +74,9 @@ This benchmark compares DoubleML.jl (Julia) against the Python DoubleML package 
 
 ### Key Findings
 
-1. **Performance:** Julia is 7.35x faster
-2. **Accuracy:** Both implementations produce similar coefficient estimates (0.47% difference)
-3. **Inference:** Standard errors are consistent between implementations (0.14% difference)
+1. **Performance:** Julia is 6.84x faster
+2. **Accuracy:** Both implementations produce similar coefficient estimates (0.34% difference)
+3. **Inference:** Standard errors are consistent between implementations (0.26% difference)
 
 ## Raw Data Files
 

@@ -4,6 +4,10 @@ using MLJ
 using MLJLinearModels
 using StatsBase
 using StatsAPI
+using CategoricalArrays
+using DataFrames
+using Random
+using StableRNGs
 
 # Load needed models
 LinearRegressor = @load LinearRegressor pkg = MLJLinearModels verbosity = 0
@@ -48,6 +52,36 @@ RandomForestRegressor = @load RandomForestRegressor pkg = DecisionTree verbosity
     @test size(dml.all_psi_b, 1) == n_obs
     @test !isempty(dml.fitted_learners_l)
     @test !isempty(dml.fitted_learners_m)
+end
+
+@testset "Categorical binary treatment" begin
+    rng = StableRNG(314)
+    n_obs = 300
+    x1 = randn(rng, Float32, n_obs)
+    x2 = randn(rng, Float32, n_obs)
+    d_numeric = Int.(x1 .+ 0.25f0 .* randn(rng, Float32, n_obs) .> 0)
+    noise = randn(rng, Float32, n_obs)
+    y = @. 0.5f0 * d_numeric + x1 - x2 + 0.25f0 * noise
+    df = DataFrame(y = y, d = categorical(d_numeric), x1 = x1, x2 = x2)
+    data = DoubleMLData(df; y_col = :y, d_col = :d, x_cols = [:x1, :x2])
+
+    LogisticClassifier = @load LogisticClassifier pkg = MLJLinearModels verbosity = 0
+    model_po = DoubleMLPLR(data, LinearRegressor(), LogisticClassifier(); n_folds = 3)
+    fit!(model_po; rng = StableRNG(2718))
+
+    @test isfitted(model_po)
+    @test all(isfinite, model_po.all_psi)
+    @test eltype(model_po.all_psi) == Float32
+
+    model_iv = DoubleMLPLR(
+        data, LinearRegressor(), LogisticClassifier();
+        ml_g = LinearRegressor(), score = :IV_type, n_folds = 3
+    )
+    fit!(model_iv; max_iter = 2, rng = StableRNG(2718))
+
+    @test isfitted(model_iv)
+    @test all(isfinite, model_iv.all_psi)
+    @test eltype(model_iv.all_psi) == Float32
 end
 
 @testset "IV-type ml_g validation" begin
