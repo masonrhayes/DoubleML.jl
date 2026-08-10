@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>LPLR Introduction · DoubleML.jl</title><meta name="title" content="LPLR Introduction · DoubleML.jl"/><meta property="og:title" content="LPLR Introduction · DoubleML.jl"/><meta property="twitter:title" content="LPLR Introduction · DoubleML.jl"/><meta name="description" content="Documentation for DoubleML.jl."/><meta property="og:description" content="Documentation for DoubleML.jl."/><meta property="twitter:description" content="Documentation for DoubleML.jl."/><meta property="og:url" content="https://masonrhayes.github.io/DoubleML.jl/notebooks/lplr_introduction/"/><meta property="twitter:url" content="https://masonrhayes.github.io/DoubleML.jl/notebooks/lplr_introduction/"/><link rel="canonical" href="https://masonrhayes.github.io/DoubleML.jl/notebooks/lplr_introduction/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">DoubleML.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><a class="tocitem" href="../../user-guide/">User Guide</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../../examples/">Overview</a></li><li><a class="tocitem" href="../plr_introduction/">PLR Introduction</a></li><li class="is-active"><a class="tocitem" href>LPLR Introduction</a></li><li><a class="tocitem" href="../irm_introduction/">IRM Introduction</a></li><li><input class="collapse-toggle" id="menuitem-3-5" type="checkbox"/><label class="tocitem" for="menuitem-3-5"><span class="docs-label">Experimental</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../conformal_ccddhnr2018/">Conformal CCDDHNR2018</a></li><li><a class="tocitem" href="../conformal_dtl2025/">Conformal DTL2025</a></li></ul></li></ul></li><li><a class="tocitem" href="../../api/">API Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>LPLR Introduction</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>LPLR Introduction</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/masonrhayes/DoubleML.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/masonrhayes/DoubleML.jl/blob/main/nothing" title="View source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><style>
+    #documenter-page table {
+        display: table !important;
+        margin: 2rem auto !important;
+        border-top: 2pt solid rgba(0,0,0,0.2);
+        border-bottom: 2pt solid rgba(0,0,0,0.2);
+    }
+
+    #documenter-page pre, #documenter-page div {
+        margin-top: 1.4rem !important;
+        margin-bottom: 1.4rem !important;
+    }
+
+    .code-output {
+        padding: 0.7rem 0.5rem !important;
+    }
+
+    .admonition-body {
+        padding: 0em 1.25em !important;
+    }
+</style>
+
+<!-- PlutoStaticHTML.Begin -->
+<!--
+    # This information is used for caching.
+    [PlutoStaticHTML.State]
+    input_sha = "ca9e4eff3637e7fcf6a64d3e280227ee6a8d5d05040871e85e09fb074de899e9"
+    julia_version = "1.12.6"
+-->
+
+
+
+
+
+
+
+<div class="markdown"><h1 id="Logistic-Partially-Linear-Regression-(LPLR)-Tutorial">Logistic Partially Linear Regression (LPLR) Tutorial</h1><p>⚠️ <strong>Experimental Model</strong>: This model is still under development.</p><h2 id="Overview">Overview</h2><p>The LPLR model estimates treatment effects with <strong>binary outcomes</strong> (<span class="tex">\(Y \in \{0,1\}\)</span>):</p><p class="tex">$$E[Y|D,X] = \text{expit}(\beta_0 D + r_0(X))$$</p><p>Where:</p><ul><li><p><span class="tex">\(Y \in \{0, 1\}\)</span> is the binary outcome</p></li><li><p><span class="tex">\(D\)</span> is the treatment (continuous or binary)</p></li><li><p><span class="tex">\(X\)</span> are control variables (covariates)</p></li><li><p><span class="tex">\(\beta_0\)</span> is the treatment effect on the log-odds scale</p></li><li><p><span class="tex">\(r_0(X)\)</span> is the nuisance function (conditional log-odds)</p></li></ul><p>The treatment effect <span class="tex">\(\beta_0\)</span> represents the change in log-odds of the outcome per unit change in treatment.</p></div>
+
+
+<div class="markdown"><h2 id="Load-packages-and-import-ML-models">Load packages and import ML models</h2></div>
+
+<pre class='language-julia'><code class='language-julia'>begin
+    using DoubleML
+    using StableRNGs
+    using MLJ
+    using TreeParzen
+    using EvoTrees
+end</code></pre>
+
+
+<pre class='language-julia'><code class='language-julia'>begin
+    RandomForestRegressor = @load RandomForestRegressor pkg = DecisionTree verbosity = 0
+    EvoTreeRegressor = @load EvoTreeRegressor pkg = EvoTrees verbosity = 0
+    EvoTreeClassifier = @load EvoTreeClassifier pkg = EvoTrees verbosity = 0
+    RandomForestClassifier = @load RandomForestClassifier pkg = DecisionTree verbosity = 0
+end</code></pre>
+<pre class="code-output documenter-example-output" id="var-#544#dic">MLJDecisionTreeInterface.RandomForestClassifier</pre>
+
+
+<div class="markdown"><h2 id="Generate-LPLR-data">Generate LPLR data</h2></div>
+
+<pre class='language-julia'><code class='language-julia'>
+data_lplr = make_lplr_LZZ2020(1000, alpha = 0.5, rng = StableRNG(42))</code></pre>
+<pre class="code-output documenter-example-output" id="var-data_lplr">DoubleMLData{Float32, Vector{Float32}}(Float32[1.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 1.0  …  0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 0.0], Float32[1.137392, -1.0203186, -1.2559067, 0.35913706, -0.98865694, 2.5477915, 1.6435643, -0.2593958, 2.7788334, 0.5610351  …  1.3883054, 1.6827291, 1.2748861, 1.5950062, 0.8413675, 0.1603024, 0.6246069, 0.86354524, 1.0373387, -1.603643], Float32[-0.67025167 0.3040378 … 0.9723363 -0.6289253; 2.0 -1.3471706 … -0.49255872 1.9596015; … ; -0.5976384 0.034506414 … 0.3402903 -0.70474565; 0.32168102 0.52544063 … 0.5724332 0.40678954], 1000, 20, :y, :d, [:X1, :X2, :X3, :X4, :X5, :X6, :X7, :X8, :X9, :X10, :X11, :X12, :X13, :X14, :X15, :X16, :X17, :X18, :X19, :X20])</pre>
+
+
+<div class="markdown"><p>Find models that match the data we have:</p></div>
+
+<pre class='language-julia'><code class='language-julia'>begin
+    # Find matching models for y
+    models() do model
+        matching(model, data_lplr.x, data_lplr.y)
+    end
+end</code></pre>
+<pre class="code-output documenter-example-output" id="var-hash135420">12-element Vector{NamedTuple{(:name, :package_name, :is_supervised, :abstract_type, :constructor, :deep_properties, :docstring, :fit_data_scitype, :human_name, :hyperparameter_ranges, :hyperparameter_types, :hyperparameters, :implemented_methods, :inverse_transform_scitype, :is_pure_julia, :is_wrapper, :iteration_parameter, :load_path, :package_license, :package_url, :package_uuid, :predict_scitype, :prediction_type, :reporting_operations, :reports_feature_importances, :supports_class_weights, :supports_online, :supports_training_losses, :supports_weights, :tags, :target_in_fit, :transform_scitype, :input_scitype, :target_scitype, :output_scitype)}}:
+ (name = CatBoostRegressor, package_name = CatBoost, ... )
+ (name = DecisionTreeRegressor, package_name = BetaML, ... )
+ (name = EvoTreeGaussian, package_name = EvoTrees, ... )
+ (name = EvoTreeMLE, package_name = EvoTrees, ... )
+ (name = EvoTreeRegressor, package_name = EvoTrees, ... )
+ (name = GaussianMixtureRegressor, package_name = BetaML, ... )
+ (name = NeuralNetworkRegressor, package_name = BetaML, ... )
+ (name = NeuralNetworkRegressor, package_name = MLJFlux, ... )
+ (name = PartLS, package_name = PartitionedLS, ... )
+ (name = RandomForestRegressor, package_name = BetaML, ... )
+ (name = SRRegressor, package_name = SymbolicRegression, ... )
+ (name = SRTestRegressor, package_name = SymbolicRegression, ... )</pre>
+
+<pre class='language-julia'><code class='language-julia'>begin
+    # Find matching models for d
+    models() do model
+        matching(model, data_lplr.x, data_lplr.d)
+    end
+end</code></pre>
+<pre class="code-output documenter-example-output" id="var-hash120331">12-element Vector{NamedTuple{(:name, :package_name, :is_supervised, :abstract_type, :constructor, :deep_properties, :docstring, :fit_data_scitype, :human_name, :hyperparameter_ranges, :hyperparameter_types, :hyperparameters, :implemented_methods, :inverse_transform_scitype, :is_pure_julia, :is_wrapper, :iteration_parameter, :load_path, :package_license, :package_url, :package_uuid, :predict_scitype, :prediction_type, :reporting_operations, :reports_feature_importances, :supports_class_weights, :supports_online, :supports_training_losses, :supports_weights, :tags, :target_in_fit, :transform_scitype, :input_scitype, :target_scitype, :output_scitype)}}:
+ (name = CatBoostRegressor, package_name = CatBoost, ... )
+ (name = DecisionTreeRegressor, package_name = BetaML, ... )
+ (name = EvoTreeGaussian, package_name = EvoTrees, ... )
+ (name = EvoTreeMLE, package_name = EvoTrees, ... )
+ (name = EvoTreeRegressor, package_name = EvoTrees, ... )
+ (name = GaussianMixtureRegressor, package_name = BetaML, ... )
+ (name = NeuralNetworkRegressor, package_name = BetaML, ... )
+ (name = NeuralNetworkRegressor, package_name = MLJFlux, ... )
+ (name = PartLS, package_name = PartitionedLS, ... )
+ (name = RandomForestRegressor, package_name = BetaML, ... )
+ (name = SRRegressor, package_name = SymbolicRegression, ... )
+ (name = SRTestRegressor, package_name = SymbolicRegression, ... )</pre>
+
+
+<div class="markdown"><h2 id="Estimate-a-simple-model">Estimate a simple model</h2></div>
+
+<pre class='language-julia'><code class='language-julia'>begin
+    # Simple LPLR with RandomForest
+    ml_M = RandomForestClassifier(rng = StableRNG(42))
+    ml_t = RandomForestRegressor(rng = StableRNG(42))
+    ml_m = RandomForestRegressor(rng = StableRNG(42))
+
+    dml_lplr_simple = DoubleML.DoubleMLLPLR(data_lplr, ml_M, ml_t, ml_m, score = :nuisance_space)
+
+    fit!(dml_lplr_simple)
+
+end</code></pre>
+<pre class="code-output documenter-example-output" id="var-ml_t">DoubleMLLPLR{Float32, MLJDecisionTreeInterface.RandomForestClassifier, MLJDecisionTreeInterface.RandomForestRegressor, MLJDecisionTreeInterface.RandomForestRegressor, MLJDecisionTreeInterface.RandomForestRegressor}
+==========================
+StatsBase.CoefTable(Any[[0.5794071555137634], [0.07449068874120712], [7.778249263763428], [7.353507254078456e-15], [0.4334080883974139], [0.725406222630113]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
+
+<pre class='language-julia'><code class='language-julia'>coeftable(dml_lplr_simple)</code></pre>
+<pre class="code-output documenter-example-output" id="var-hash360715">────────────────────────────────────────────────────────────────────
+   Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
+────────────────────────────────────────────────────────────────────
+d  0.579407   0.0744907     7.78    &lt;1e-14     0.433408     0.725406
+────────────────────────────────────────────────────────────────────</pre>
+
+
+<div class="markdown"><h2 id="Estimate-a-more-complex-model-with-iteration-control">Estimate a more complex model with iteration control</h2></div>
+
+<pre class='language-julia'><code class='language-julia'>begin
+    # Set up iteration controls
+    controls = [
+        Step(1),
+        Patience(6),
+        NumberLimit(25),
+    ]
+
+    ml_M_iterated = IteratedModel(
+        EvoTreeClassifier(max_depth = 4, eta = 0.01, seed = 42),
+        resampling = Holdout(),
+        measure = cross_entropy,
+        iteration_parameter = :nrounds,
+        controls = controls
+    )
+
+    ml_t_iterated = IteratedModel(
+        EvoTreeRegressor(max_depth = 4, eta = 0.01, seed = 42),
+        resampling = Holdout(),
+        measure = mav,
+        iteration_parameter = :nrounds,
+        controls = controls
+    )
+
+    ml_m_iterated = IteratedModel(
+        EvoTreeRegressor(max_depth = 4, eta = 0.01, seed = 42),
+        resampling = Holdout(),
+        measure = mae,
+        iteration_parameter = :nrounds,
+        controls = controls
+    )
+
+    # Set up the model
+    dml_lplr_iterated = DoubleML.DoubleMLLPLR(data_lplr, ml_M_iterated, ml_t_iterated, ml_m_iterated, score = :nuisance_space)
+
+    # Fit the model
+    fit!(dml_lplr_iterated)
+
+
+end</code></pre>
+<pre class="code-output documenter-example-output" id="var-controls">DoubleMLLPLR{Float32, MLJIteration.ProbabilisticIteratedModel{EvoTrees.EvoTreeClassifier, Nothing}, MLJIteration.DeterministicIteratedModel{EvoTrees.EvoTreeRegressor, Nothing}, MLJIteration.DeterministicIteratedModel{EvoTrees.EvoTreeRegressor, Nothing}, MLJIteration.DeterministicIteratedModel{EvoTrees.EvoTreeRegressor, Nothing}}
+==========================
+StatsBase.CoefTable(Any[[0.5143537521362305], [0.06825204938650131], [7.536092281341553], [4.8426394865056066e-14], [0.38058219346763855], [0.6481253108048224]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
+
+<pre class='language-julia'><code class='language-julia'>coeftable(dml_lplr_iterated)</code></pre>
+<pre class="code-output documenter-example-output" id="var-hash950978">────────────────────────────────────────────────────────────────────
+   Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
+────────────────────────────────────────────────────────────────────
+d  0.514354    0.068252     7.54    &lt;1e-13     0.380582     0.648125
+────────────────────────────────────────────────────────────────────</pre>
+
+<!-- PlutoStaticHTML.End --></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../plr_introduction/">« PLR Introduction</a><a class="docs-footer-nextpage" href="../irm_introduction/">IRM Introduction »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Monday 10 August 2026 14:15">Monday 10 August 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
