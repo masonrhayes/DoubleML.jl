@@ -18,17 +18,15 @@ Thank you for your interest in contributing to DoubleML.jl! This document provid
    git clone https://github.com/YOUR_USERNAME/DoubleML.jl.git
    cd DoubleML.jl
    ```
-3. Install the package in development mode:
-
-   ```julia
-   using Pkg
-   Pkg.develop(path=".")
-   ```
-4. Install all dependencies:
+3. Install the project dependencies:
 
    ```bash
    julia --project=. -e 'using Pkg; Pkg.instantiate()'
    ```
+
+   On Julia 1.12 and newer, this also instantiates the `test`, `docs`, and
+   `examples` workspace projects. Julia 1.10 and 1.11 ignore the workspace
+   metadata and resolve the test project when the test suite runs.
 
 ### Running Tests
 

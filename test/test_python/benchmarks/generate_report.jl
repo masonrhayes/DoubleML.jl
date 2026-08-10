@@ -8,11 +8,13 @@ Pkg.activate(joinpath(@__DIR__, "../.."))  # Activate test environment (2 levels
 
 using JSON3
 using Dates
+using CairoMakie
 
 const BENCHMARKS_DIR = @__DIR__
 const JULIA_RESULTS_FILE = joinpath(BENCHMARKS_DIR, "benchmark_results_julia.json")
 const PYTHON_RESULTS_FILE = joinpath(BENCHMARKS_DIR, "benchmark_results_python.json")
 const REPORT_FILE = joinpath(BENCHMARKS_DIR, "benchmarks.md")
+const PLOT_FILE = joinpath(BENCHMARKS_DIR, "benchmark_fit_time.png")
 
 # Hardware detection
 function get_hardware_info()
@@ -113,6 +115,24 @@ py_time_median = python_results.benchmark_median_sec
 py_coef = python_results.coefficient
 py_se = python_results.std_error
 
+# Generate a bar plot of the median model fit times.
+plot_labels = ["Julia (DoubleML.jl)", "Python (DoubleML)"]
+plot_times = [jl_time_median, py_time_median]
+begin
+    fig = Figure(size = (800, 500))
+    ax = Axis(
+        fig[1, 1],
+        title = "Median time required to fit DoubleMLPLR model",
+        xlabel = "Implementation",
+        ylabel = "Seconds",
+        xticks = (1:2, plot_labels),
+    )
+    barplot!(ax, 1:2, plot_times, color = [:steelblue, :darkorange])
+    caption = "$(n_obs) observations | $(dim_x) covariates | Julia: $(julia_results.learner), Python: $(python_results.learner)"
+    Label(fig[2, 1], caption, fontsize = 14, tellwidth = false, halign = :left)
+    save(PLOT_FILE, fig)
+end
+
 # Calculate comparisons
 time_ratio = py_time_median / jl_time_median
 coef_diff = abs(jl_coef - py_coef)
@@ -154,6 +174,8 @@ report = """
 | Python | XGBRegressor (100 trees, max_depth=6, learning_rate=0.1) |
 
 ## Timing Results
+
+![Median model fit time](benchmark_fit_time.png)
 
 ### Julia (DoubleML.jl)
 

@@ -52,6 +52,7 @@ learner_l = xgb.XGBRegressor(
     max_depth=6,
     objective='reg:squarederror',
     n_jobs=-1,
+    tree_method = 'hist',
     random_state=42
 )
 
@@ -61,6 +62,7 @@ learner_m = xgb.XGBRegressor(
     max_depth=6,
     objective='reg:squarederror',
     n_jobs=-1,
+    tree_method = 'hist',
     random_state=42
 )
 print("  ✓ Learners configured")

@@ -10,10 +10,48 @@ Includes:
     coerce_target(y::AbstractVector, model)
 
 Coerce target variable to appropriate type for MLJ model.
+
+For models that wrap other models (e.g., conformal prediction models),
+this function attempts to extract the base model and coerce based on its type.
 """
 function coerce_target(y::AbstractVector, model)
     expected = MLJ.target_scitype(model)
+
+    # If target_scitype is Unknown, the model might be a wrapper (e.g., conformal)
+    # Try to extract base model and recurse
+    if expected === ScientificTypes.Unknown
+        base_model = _extract_base_model(model)
+        if base_model !== nothing && base_model !== model
+            return coerce_target(y, base_model)
+        end
+    end
+
     return _coerce_by_scitype(y, expected)
+end
+
+"""
+    _extract_base_model(model)
+
+Attempt to extract the base model from a wrapper model.
+Returns `nothing` if no base model can be extracted.
+"""
+function _extract_base_model(model)
+    # Check for common wrapper patterns
+    if hasfield(typeof(model), :model)
+        return model.model
+    end
+
+    # If the model wraps another conformal/model, it might have nested structure
+    # Try to access nested .model field up to 3 levels deep
+    for _ in 1:3
+        if hasfield(typeof(model), :model)
+            model = model.model
+        else
+            break
+        end
+    end
+
+    return hasfield(typeof(model), :model) ? model.model : nothing
 end
 
 function _coerce_by_scitype(y, ::Type{<:AbstractVector{<:ScientificTypes.Continuous}})
@@ -33,6 +71,9 @@ function _coerce_by_scitype(y, ::Type{<:AbstractVector{<:ScientificTypes.Finite}
 end
 
 function _coerce_by_scitype(y, expected)
+    # Check if the model might be a wrapper (e.g., conformal model) with a .model field
+    # We can't check the type directly since ConformalPrediction is a weak dependency,
+    # but we can try to extract and use the base model if available
     @warn "Unknown target_scitype: $expected. Passing data through unchanged."
     return y
 end
@@ -67,10 +108,14 @@ end
 
 """
     get_conditional_sample_splitting(n_obs, n_folds, n_rep, d; shuffle=true, rng)
+    get_conditional_sample_splitting(all_smpls, d)
 
 Create conditional sample splits for control (D=0) and treated (D=1) groups.
 
 Used for IRM where separate models are fit for each treatment group.
+
+Pass existing sample splits to ensure that the conditional and unconditional
+learners use the same outer folds.
 
 # Returns
 Vector of length `n_rep`, each a tuple (smpls_d0, smpls_d1).
@@ -81,6 +126,12 @@ function get_conditional_sample_splitting(
         shuffle::Bool = true, rng::AbstractRNG = Random.default_rng()
     )
     all_smpls = draw_sample_splitting(n_obs, n_folds, n_rep; shuffle = shuffle, rng = rng)
+
+    return get_conditional_sample_splitting(all_smpls, d)
+end
+
+function get_conditional_sample_splitting(all_smpls::AbstractVector, d::AbstractVector)
+    n_rep = length(all_smpls)
 
     all_cond_smpls = Vector{
         Tuple{
@@ -197,6 +248,21 @@ function _aggregate_performance(eval_results::Vector{<:NamedTuple})
     values = [e.value for e in eval_results]
     measure = eval_results[1].measure
     return (value = mean(values), measure = measure)
+end
+
+"""
+    _compute_se(psi, psi_a)
+
+Compute the standard error from score values and their derivative.
+"""
+function _compute_se(psi::AbstractVector, psi_a::AbstractVector)
+    length(psi) == length(psi_a) || throw(
+        DimensionMismatch("psi and psi_a must have the same length")
+    )
+    isempty(psi) && throw(ArgumentError("psi and psi_a must not be empty"))
+
+    jacobian = mean(psi_a)
+    return sqrt(mean(abs2, psi) / (length(psi) * abs2(jacobian)))
 end
 
 """

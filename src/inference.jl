@@ -159,13 +159,31 @@ function bootstrap!(
         method::Union{AbstractBootstrapMethod, Symbol} = NormalBootstrap(),
         rng::AbstractRNG = Random.default_rng()
     ) where {T <: AbstractFloat}
-    isnan(obj.coef) && throw(ArgumentError("Model must be fitted before calling bootstrap!"))
+    !isfitted(obj) && throw(ArgumentError("Model must be fitted before calling bootstrap!"))
+    n_rep_boot < 1 && throw(ArgumentError("n_rep_boot must be >= 1"))
+
+    method_obj = method isa Symbol ? _bootstrap_method_from_symbol(method) : method
 
     n_rep = obj.n_rep
     n_coefs = 1  # Currently only single treatment supported
+    n_obs = obj.data.n_obs
 
-    # Initialize 3D array for bootstrap t-statistics: (n_rep_boot × n_coefs × n_rep)
-    obj.boot_t_stat = Array{T, 3}(undef, n_rep_boot, n_coefs, n_rep)
+    size(obj.all_psi) == (n_obs, n_rep) || throw(
+        DimensionMismatch("all_psi must have size ($n_obs, $n_rep)")
+    )
+    size(obj.all_psi_a) == (n_obs, n_rep) || throw(
+        DimensionMismatch("all_psi_a must have size ($n_obs, $n_rep)")
+    )
+    length(obj.all_se) == n_rep || throw(
+        DimensionMismatch("all_se must have length $n_rep")
+    )
+    all(isfinite, obj.all_psi) || throw(ArgumentError("all_psi contains non-finite values"))
+    all(isfinite, obj.all_psi_a) || throw(ArgumentError("all_psi_a contains non-finite values"))
+    all(se -> isfinite(se) && se > zero(T), obj.all_se) || throw(
+        ArgumentError("all_se must contain positive finite values")
+    )
+
+    boot_t_stat = Array{T, 3}(undef, n_rep_boot, n_coefs, n_rep)
 
     # Loop over sample splitting repetitions (matching Python's approach)
     for r in 1:n_rep
@@ -174,12 +192,13 @@ function bootstrap!(
         psi_a_r = view(obj.all_psi_a, :, r)
         se_r = obj.all_se[r]
 
-        boot_draws = multiplier_bootstrap(psi_r, psi_a_r, n_rep_boot; method = method, rng = rng)
-        obj.boot_t_stat[:, n_coefs, r] = boot_draws ./ se_r
+        boot_draws = multiplier_bootstrap(psi_r, psi_a_r, n_rep_boot; method = method_obj, rng = rng)
+        boot_t_stat[:, n_coefs, r] = boot_draws ./ se_r
     end
 
+    obj.boot_t_stat = boot_t_stat
     obj.has_bootstrapped = true
-    obj.boot_method = method isa Symbol ? _bootstrap_method_from_symbol(method) : method
+    obj.boot_method = method_obj
     obj.n_rep_boot = n_rep_boot
 
     return obj

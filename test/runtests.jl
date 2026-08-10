@@ -10,6 +10,7 @@ using DoubleML
 @time @safetestset "StatsAPI Methods" include("test_unit/test_statsapi.jl")
 @time @safetestset "Evaluation Functions" include("test_unit/test_evaluation.jl")
 @time @safetestset "Edge Cases" include("test_unit/test_edge_cases.jl")
+@time @safetestset "Conformal UT" include("test_unit/test_conformal_ut.jl")
 @time @safetestset "Aggregation and Multiple Repetitions" include("test_unit/test_aggregation.jl")
 
 # Model tests (testing complete model workflows)

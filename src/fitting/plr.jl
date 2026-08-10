@@ -101,18 +101,27 @@ function DoubleMLPLR(
 end
 
 """
-    fit!(obj::DoubleMLPLR; verbose=0, max_iter=1, tol=1e-4, force=false)
+    fit!(obj::DoubleMLPLR; verbose=0, max_iter=1, tol=1e-4, force=false, rng=Random.default_rng())
 
 Fit the DoubleML PLR model using cross-fitting.
+
+The `rng` keyword controls sample splitting only. Randomness internal to the
+MLJ learners is configured on the learners themselves.
 """
 function MLJ.fit!(
         obj::DoubleMLPLR{T}; verbose::Int = 0, max_iter::Int = 1,
-        tol::Real = 1.0e-4, force::Bool = false
+        tol::Real = 1.0e-4, force::Bool = false,
+        rng::AbstractRNG = Random.default_rng()
     ) where {T}
     if isfitted(obj)
         !force && (@warn "Model already fitted. Use force=true to refit."; return obj)
         @warn "Forcing refit."
     end
+
+    _reset_fit_state!(obj)
+    obj.fitted_learners_l = MLJ.Machine[]
+    obj.fitted_learners_m = MLJ.Machine[]
+    obj.fitted_learners_g = MLJ.Machine[]
 
     if verbose > 0
         score_name = obj.score_obj isa PartiallingOutScore ? "partialling out" : "IV-type"
@@ -121,7 +130,7 @@ function MLJ.fit!(
     end
 
     n_obs = obj.data.n_obs
-    all_smpls = draw_sample_splitting(n_obs, obj.n_folds, obj.n_rep)
+    all_smpls = draw_sample_splitting(n_obs, obj.n_folds, obj.n_rep; rng = rng)
 
     X = DataFrame(obj.data.x, obj.data.x_cols)
     Y = obj.data.y
@@ -129,22 +138,25 @@ function MLJ.fit!(
 
     # Pre-coerce treatment variable for ml_m to avoid per-fold coercion overhead
     D_coerced = coerce_target(D, obj.ml_m)
-
-    obj.fitted_learners_l = MLJ.Machine[]
-    obj.fitted_learners_m = MLJ.Machine[]
-    obj.fitted_learners_g = MLJ.Machine[]
+    D_numeric = T.(to_numeric(D))
 
     if obj.score_obj isa PartiallingOutScore
-        _fit_partialling_out!(obj, X, Y, D, D_coerced, all_smpls, n_obs, verbose)
+        _fit_partialling_out!(
+            obj, X, Y, D, D_numeric, D_coerced, all_smpls, n_obs, verbose
+        )
     else
-        _fit_iv_type!(obj, X, Y, D, D_coerced, all_smpls, n_obs, verbose, max_iter, tol)
+        _fit_iv_type!(
+            obj, X, Y, D, D_numeric, D_coerced, all_smpls, n_obs, verbose,
+            max_iter, tol
+        )
     end
 
     return obj
 end
 
 function _fit_partialling_out!(
-        obj::DoubleMLPLR{T}, X, Y, D, D_coerced, all_smpls, n_obs, verbose
+        obj::DoubleMLPLR{T}, X, Y, D, D_numeric, D_coerced,
+        all_smpls, n_obs, verbose
     ) where {T}
     ml_l = obj.ml_l
     ml_m = obj.ml_m
@@ -156,10 +168,6 @@ function _fit_partialling_out!(
 
     eval_l_folds = NamedTuple[]
     eval_m_folds = NamedTuple[]
-
-    # Storage for per-repetition results
-    all_psi_a = Vector{Vector{T}}(undef, obj.n_rep)
-    all_psi_b = Vector{Vector{T}}(undef, obj.n_rep)
 
     for r in 1:obj.n_rep
         smpls = all_smpls[r]
@@ -178,8 +186,11 @@ function _fit_partialling_out!(
             )
         end
 
-        psi_a_rep = zeros(T, n_obs)
-        psi_b_rep = zeros(T, n_obs)
+        psi_a_rep = @view obj.all_psi_a[:, r]
+        psi_b_rep = @view obj.all_psi_b[:, r]
+        psi_rep = @view obj.all_psi[:, r]
+        fill!(psi_a_rep, zero(T))
+        fill!(psi_b_rep, zero(T))
 
         @views for (train_idx, test_idx) in smpls
             X_train = X[train_idx, :]
@@ -198,6 +209,7 @@ function _fit_partialling_out!(
             m_hat, m_pred_raw = predict_nuisance(mach_m, X_test, "m(X)")
 
             D_test = D[test_idx]
+            D_test_numeric = D_numeric[test_idx]
             Y_test = Y[test_idx]
 
             eval_l = _evaluate_learner(mach_l, Y_test, l_pred_raw)
@@ -205,37 +217,24 @@ function _fit_partialling_out!(
             push!(eval_l_folds, eval_l)
             push!(eval_m_folds, eval_m)
 
-            psi_a, psi_b = compute_score(obj.score_obj, Y_test, D_test, l_hat, m_hat)
+            psi_a, psi_b = compute_score(
+                obj.score_obj, Y_test, D_test_numeric, l_hat, m_hat
+            )
 
             psi_a_rep[test_idx] .= psi_a
             psi_b_rep[test_idx] .= psi_b
         end
 
-        all_psi_a[r] = psi_a_rep
-        all_psi_b[r] = psi_b_rep
-
         # Solve DML2 for this repetition
         obj.all_coef[r] = dml2_solve(psi_a_rep, psi_b_rep)
 
         # Compute SE for this repetition
-        psi_rep = @. (psi_a_rep * obj.all_coef[r]) + psi_b_rep
-        J_rep = mean(psi_a_rep)
-        gamma_hat_rep = mean(psi_rep .^ 2)
-        sigma2_hat_rep = gamma_hat_rep / (n_obs * J_rep^2)
-        obj.all_se[r] = sqrt(sigma2_hat_rep)
+        @. psi_rep = psi_a_rep * obj.all_coef[r] + psi_b_rep
+        obj.all_se[r] = _compute_se(psi_rep, psi_a_rep)
     end
 
     # Aggregate across repetitions using median-based aggregation
     obj.coef, obj.se = _aggregate_coefs_and_ses(obj.all_coef, obj.all_se)
-
-    # Store all psi components as matrices (n_obs × n_rep)
-    obj.all_psi_a = hcat(all_psi_a...)
-    obj.all_psi_b = hcat(all_psi_b...)
-
-    # Compute psi at per-repetition coefficient
-    for r in 1:obj.n_rep
-        obj.all_psi[:, r] = @. obj.all_psi_a[:, r] * obj.all_coef[r] + obj.all_psi_b[:, r]
-    end
 
     obj.learner_performance = (
         ml_l = _aggregate_performance(eval_l_folds),
@@ -248,7 +247,8 @@ function _fit_partialling_out!(
 end
 
 function _fit_iv_type!(
-        obj::DoubleMLPLR{T}, X, Y, D, D_coerced, all_smpls, n_obs, verbose, max_iter, tol
+        obj::DoubleMLPLR{T}, X, Y, D, D_numeric, D_coerced,
+        all_smpls, n_obs, verbose, max_iter, tol
     ) where {T}
     ml_l = obj.ml_l
     ml_m = obj.ml_m
@@ -263,10 +263,6 @@ function _fit_iv_type!(
     eval_l_folds = NamedTuple[]
     eval_m_folds = NamedTuple[]
     eval_g_folds = NamedTuple[]
-
-    # Storage for per-repetition psi components
-    all_psi_a = Vector{Vector{T}}(undef, obj.n_rep)
-    all_psi_b = Vector{Vector{T}}(undef, obj.n_rep)
 
     for r in 1:obj.n_rep
         smpls = all_smpls[r]
@@ -299,10 +295,12 @@ function _fit_iv_type!(
             MLJ.fit!(mach_m, verbosity = verbose)
             m_hat, m_pred_raw = predict_nuisance(mach_m, X_test, "m(X)")
 
-            D_test = D[test_idx]
+            D_test_numeric = D_numeric[test_idx]
             Y_test = Y[test_idx]
 
-            psi_a, psi_b = compute_score(PartiallingOutScore(), Y_test, D_test, l_hat, m_hat)
+            psi_a, psi_b = compute_score(
+                PartiallingOutScore(), Y_test, D_test_numeric, l_hat, m_hat
+            )
             psi_a_temp[test_idx] .= psi_a
             psi_b_temp[test_idx] .= psi_b
         end
@@ -310,8 +308,11 @@ function _fit_iv_type!(
         theta_current = dml2_solve(psi_a_temp, psi_b_temp)
 
         # Iterative refinement for this repetition
-        psi_a_rep = zeros(T, n_obs)
-        psi_b_rep = zeros(T, n_obs)
+        psi_a_rep = @view obj.all_psi_a[:, r]
+        psi_b_rep = @view obj.all_psi_b[:, r]
+        psi_rep = @view obj.all_psi[:, r]
+        fill!(psi_a_rep, zero(T))
+        fill!(psi_b_rep, zero(T))
 
         for iter in 1:max_iter
             psi_a_fold = zeros(T, n_obs)
@@ -322,12 +323,13 @@ function _fit_iv_type!(
                 X_test = X[test_idx, :]
                 Y_train = Y[train_idx]
 
-                D_train = D_coerced[train_idx]
-                mach_m = machine(rep_ml_m, X_train, D_train)
+                D_train_coerced = D_coerced[train_idx]
+                mach_m = machine(rep_ml_m, X_train, D_train_coerced)
                 MLJ.fit!(mach_m, verbosity = verbose)
                 m_hat, m_pred_raw = predict_nuisance(mach_m, X_test, "m(X)")
 
-                Y_target = Y_train .- D_train .* theta_current
+                D_train_numeric = D_numeric[train_idx]
+                Y_target = Y_train .- D_train_numeric .* theta_current
                 mach_g = machine(rep_ml_g, X_train, Y_target)
                 MLJ.fit!(mach_g, verbosity = verbose)
                 g_hat, g_pred_raw = predict_nuisance(mach_g, X_test, "g(X)")
@@ -348,10 +350,12 @@ function _fit_iv_type!(
                     push!(eval_g_folds, _evaluate_learner(mach_g, Y_test, g_pred_raw))
                 end
 
-                D_test = D[test_idx]
+                D_test_numeric = D_numeric[test_idx]
                 Y_test = Y[test_idx]
 
-                psi_a, psi_b = compute_score(IVTypeScore(), Y_test, D_test, g_hat, m_hat)
+                psi_a, psi_b = compute_score(
+                    IVTypeScore(), Y_test, D_test_numeric, g_hat, m_hat
+                )
                 psi_a_fold[test_idx] .= psi_a
                 psi_b_fold[test_idx] .= psi_b
             end
@@ -372,30 +376,15 @@ function _fit_iv_type!(
             end
         end
 
-        all_psi_a[r] = psi_a_rep
-        all_psi_b[r] = psi_b_rep
-
         # Store coefficient and SE for this repetition
         obj.all_coef[r] = theta_current
 
-        psi_rep = @. (psi_a_rep * theta_current) + psi_b_rep
-        J_rep = mean(psi_a_rep)
-        gamma_hat_rep = mean(psi_rep .^ 2)
-        sigma2_hat_rep = gamma_hat_rep / (n_obs * J_rep^2)
-        obj.all_se[r] = sqrt(sigma2_hat_rep)
+        @. psi_rep = psi_a_rep * theta_current + psi_b_rep
+        obj.all_se[r] = _compute_se(psi_rep, psi_a_rep)
     end
 
     # Aggregate across repetitions using median-based aggregation
     obj.coef, obj.se = _aggregate_coefs_and_ses(obj.all_coef, obj.all_se)
-
-    # Store all psi components as matrices (n_obs × n_rep)
-    obj.all_psi_a = hcat(all_psi_a...)
-    obj.all_psi_b = hcat(all_psi_b...)
-
-    # Compute psi at per-repetition coefficient
-    for r in 1:obj.n_rep
-        obj.all_psi[:, r] = @. obj.all_psi_a[:, r] * obj.all_coef[r] + obj.all_psi_b[:, r]
-    end
 
     obj.learner_performance = (
         ml_l = _aggregate_performance(eval_l_folds),

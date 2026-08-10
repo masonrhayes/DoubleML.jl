@@ -25,8 +25,8 @@
 <!--
     # This information is used for caching.
     [PlutoStaticHTML.State]
-    input_sha = "a3a7b0415ddc7094d067c6d231c7ba9b49716ce1b02cc95dfbc9cc0300d4a750"
-    julia_version = "1.12.4"
+    input_sha = "e4a2a8f0b9f5a64c947d058a83d1bffc8a4c94dd30416fb702b7c8d85a55d245"
+    julia_version = "1.12.6"
 -->
 
 
@@ -47,7 +47,7 @@
     EvoTreeRegressor = @load EvoTreeRegressor pkg = EvoTrees verbosity = 0
     RandomForestRegressor = @load RandomForestRegressor pkg = DecisionTree verbosity = 0
 end</code></pre>
-<pre class="code-output documenter-example-output" id="var-#449#handle">MLJDecisionTreeInterface.RandomForestRegressor</pre>
+<pre class="code-output documenter-example-output" id="var-#483#handle">MLJDecisionTreeInterface.RandomForestRegressor</pre>
 
 
 <div class="markdown"><h2 id="Generate-PLR-data">Generate PLR data</h2></div>
@@ -63,7 +63,7 @@ data_plr = DoubleML.make_plr_CCDDHNR2018(1000, alpha = 0.5, dim_x = 20, rng = St
 models() do model
     matching(model, data_plr.x, data_plr.y)
 end</code></pre>
-<pre class="code-output documenter-example-output" id="var-hash994832">11-element Vector{NamedTuple{(:name, :package_name, :is_supervised, :abstract_type, :constructor, :deep_properties, :docstring, :fit_data_scitype, :human_name, :hyperparameter_ranges, :hyperparameter_types, :hyperparameters, :implemented_methods, :inverse_transform_scitype, :is_pure_julia, :is_wrapper, :iteration_parameter, :load_path, :package_license, :package_url, :package_uuid, :predict_scitype, :prediction_type, :reporting_operations, :reports_feature_importances, :supports_class_weights, :supports_online, :supports_training_losses, :supports_weights, :tags, :target_in_fit, :transform_scitype, :input_scitype, :target_scitype, :output_scitype)}}:
+<pre class="code-output documenter-example-output" id="var-hash994832">12-element Vector{NamedTuple{(:name, :package_name, :is_supervised, :abstract_type, :constructor, :deep_properties, :docstring, :fit_data_scitype, :human_name, :hyperparameter_ranges, :hyperparameter_types, :hyperparameters, :implemented_methods, :inverse_transform_scitype, :is_pure_julia, :is_wrapper, :iteration_parameter, :load_path, :package_license, :package_url, :package_uuid, :predict_scitype, :prediction_type, :reporting_operations, :reports_feature_importances, :supports_class_weights, :supports_online, :supports_training_losses, :supports_weights, :tags, :target_in_fit, :transform_scitype, :input_scitype, :target_scitype, :output_scitype)}}:
  (name = CatBoostRegressor, package_name = CatBoost, ... )
  (name = DecisionTreeRegressor, package_name = BetaML, ... )
  (name = EvoTreeGaussian, package_name = EvoTrees, ... )
@@ -74,15 +74,16 @@ end</code></pre>
  (name = NeuralNetworkRegressor, package_name = MLJFlux, ... )
  (name = PartLS, package_name = PartitionedLS, ... )
  (name = RandomForestRegressor, package_name = BetaML, ... )
- (name = SRRegressor, package_name = SymbolicRegression, ... )</pre>
+ (name = SRRegressor, package_name = SymbolicRegression, ... )
+ (name = SRTestRegressor, package_name = SymbolicRegression, ... )</pre>
 
 
 <div class="markdown"><h2 id="Run-a-simple-model">Run a simple model</h2></div>
 
 <pre class='language-julia'><code class='language-julia'>begin
     # Simple PLR with RandomForest
-    ml_m = RandomForestRegressor()
-    ml_g = RandomForestRegressor()
+    ml_m = RandomForestRegressor(rng = StableRNG(42))
+    ml_g = RandomForestRegressor(rng = StableRNG(42))
 
     dml_plr_simple = DoubleML.DoubleMLPLR(data_plr, ml_g, ml_m, n_folds = 4, n_rep = 1)
 
@@ -90,13 +91,13 @@ end</code></pre>
 end</code></pre>
 <pre class="code-output documenter-example-output" id="var-ml_m">DoubleMLPLR{Float32, MLJDecisionTreeInterface.RandomForestRegressor, MLJDecisionTreeInterface.RandomForestRegressor, Nothing}
 ==========================
-StatsBase.CoefTable(Any[[0.4955131709575653], [0.030272817239165306], [16.368253707885742], [3.22330598738836e-60], [0.43617953945823795], [0.5548468024568927]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
+StatsBase.CoefTable(Any[[0.5004154443740845], [0.030645174905657768], [16.32933807373047], [6.104304311646563e-60], [0.4403520052590645], [0.5604788834891045]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
 
 <pre class='language-julia'><code class='language-julia'>coeftable(dml_plr_simple)</code></pre>
 <pre class="code-output documenter-example-output" id="var-hash142443">────────────────────────────────────────────────────────────────────
    Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
 ────────────────────────────────────────────────────────────────────
-d  0.495513   0.0302728    16.37    &lt;1e-59      0.43618     0.554847
+d  0.500415   0.0306452    16.33    &lt;1e-59     0.440352     0.560479
 ────────────────────────────────────────────────────────────────────</pre>
 
 
@@ -117,7 +118,7 @@ d  0.495513   0.0302728    16.37    &lt;1e-59      0.43618     0.554847
 
     # Set up the self-tuning models
     tuned_ml_m = TunedModel(
-        model = RandomForestRegressor(),
+        model = RandomForestRegressor(rng = StableRNG(42)),
         tuning = MLJTreeParzenTuning(random_trials = 100, max_simultaneous_draws = 5, linear_forgetting = 50),
         resampling = CV(nfolds = 3),
         range = space,
@@ -126,7 +127,7 @@ d  0.495513   0.0302728    16.37    &lt;1e-59      0.43618     0.554847
     )
 
     tuned_ml_g = TunedModel(
-        model = RandomForestRegressor(),
+        model = RandomForestRegressor(rng = StableRNG(42)),
         tuning = MLJTreeParzenTuning(random_trials = 100, max_simultaneous_draws = 5, linear_forgetting = 50),
         resampling = CV(nfolds = 3),
         range = space,
@@ -142,13 +143,13 @@ d  0.495513   0.0302728    16.37    &lt;1e-59      0.43618     0.554847
 end</code></pre>
 <pre class="code-output documenter-example-output" id="var-tuned_ml_m">DoubleMLPLR{Float32, MLJTuning.DeterministicTunedModel{MLJTreeParzenTuning, MLJDecisionTreeInterface.RandomForestRegressor, Nothing}, MLJTuning.DeterministicTunedModel{MLJTreeParzenTuning, MLJDecisionTreeInterface.RandomForestRegressor, Nothing}, Nothing}
 ==========================
-StatsBase.CoefTable(Any[[0.5012282729148865], [0.030155271291732788], [16.621580123901367], [4.863373208020454e-62], [0.44212502723905545], [0.5603315185907175]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
+StatsBase.CoefTable(Any[[0.5085684657096863], [0.029936933889985085], [16.987995147705078], [1.007752415212665e-64], [0.4498931534777588], [0.5672437779416137]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
 
 <pre class='language-julia'><code class='language-julia'>coeftable(dml_plr)</code></pre>
 <pre class="code-output documenter-example-output" id="var-hash110135">────────────────────────────────────────────────────────────────────
    Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
 ────────────────────────────────────────────────────────────────────
-d  0.501228   0.0301553    16.62    &lt;1e-61     0.442125     0.560332
+d  0.508568   0.0299369    16.99    &lt;1e-63     0.449893     0.567244
 ────────────────────────────────────────────────────────────────────</pre>
 
 
@@ -167,7 +168,7 @@ begin
 
     # Set up learners with iteration control and early stopping
     ml_l_iterated = IteratedModel(
-        EvoTreeRegressor(),
+        EvoTreeRegressor(seed = 42),
         resampling = Holdout(),
         measure = rmse,
         iteration_parameter = :nrounds,
@@ -175,7 +176,7 @@ begin
     )
 
     ml_m_iterated = IteratedModel(
-        EvoTreeRegressor(),
+        EvoTreeRegressor(seed = 42),
         resampling = Holdout(),
         measure = rmse,
         iteration_parameter = :nrounds,
@@ -186,18 +187,18 @@ begin
     dml_plr_iterated = DoubleML.DoubleMLPLR(data_plr, ml_l_iterated, ml_m_iterated, n_folds = 4, n_rep = 1)
 
     # Fit it
-    fit!(dml_plr_iterated, verbose = 1)
+    fit!(dml_plr_iterated, verbose = 0)
 end
 </code></pre>
-<pre class="code-output documenter-example-output" id="var-controls">DoubleMLPLR{Float32, MLJIteration.DeterministicIteratedModel{EvoTrees.EvoTreeRegressor}, MLJIteration.DeterministicIteratedModel{EvoTrees.EvoTreeRegressor}, Nothing}
+<pre class="code-output documenter-example-output" id="var-controls">DoubleMLPLR{Float32, MLJIteration.DeterministicIteratedModel{EvoTrees.EvoTreeRegressor, Nothing}, MLJIteration.DeterministicIteratedModel{EvoTrees.EvoTreeRegressor, Nothing}, Nothing}
 ==========================
-StatsBase.CoefTable(Any[[0.42265695333480835], [0.03199619799852371], [13.209599494934082], [7.72342689243353e-40], [0.3599455576154892], [0.4853683490541275]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
+StatsBase.CoefTable(Any[[0.4677792489528656], [0.03386126086115837], [13.814584732055664], [2.08151106312002e-43], [0.40141239719387933], [0.5341461007118519]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
 
 <pre class='language-julia'><code class='language-julia'>coeftable(dml_plr_iterated)</code></pre>
 <pre class="code-output documenter-example-output" id="var-hash219819">────────────────────────────────────────────────────────────────────
    Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
 ────────────────────────────────────────────────────────────────────
-d  0.422657   0.0319962    13.21    &lt;1e-39     0.359946     0.485368
+d  0.467779   0.0338613    13.81    &lt;1e-42     0.401412     0.534146
 ────────────────────────────────────────────────────────────────────</pre>
 
 <pre class='language-julia'><code class='language-julia'>summary(dml_plr_iterated)</code></pre>

@@ -12,6 +12,8 @@ notebooks = [
     ("PLR Introduction", joinpath(@__DIR__, "..", "examples", "PLR", "plr_introduction.jl")),
     ("LPLR Introduction", joinpath(@__DIR__, "..", "examples", "LPLR", "lplr_introduction.jl")),
     ("IRM Introduction", joinpath(@__DIR__, "..", "examples", "IRM", "irm_introduction.jl")),
+    ("Conformal Prediction Demo (CCDDNHR2018)", joinpath(@__DIR__, "..", "examples", "Conformal", "conformal_ccddhnr2018.jl")),
+    ("Conformal Prediction Demo (DTL2025)", joinpath(@__DIR__, "..", "examples", "Conformal", "conformal_dtl2025.jl")),
 ]
 
 # Output directory for notebooks in documentation
@@ -95,6 +97,10 @@ makedocs(
             "PLR Introduction" => "notebooks/plr_introduction.md",
             "LPLR Introduction" => "notebooks/lplr_introduction.md",
             "IRM Introduction" => "notebooks/irm_introduction.md",
+            "Experimental" => [
+                "Conformal CCDDHNR2018" => "notebooks/conformal_ccddhnr2018.md",
+                "Conformal DTL2025" => "notebooks/conformal_dtl2025.md",
+            ],
         ],
         "API Reference" => "api.md",
     ],

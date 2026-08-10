@@ -25,8 +25,8 @@
 <!--
     # This information is used for caching.
     [PlutoStaticHTML.State]
-    input_sha = "f9b7fffec6565f3c6d1cb86014d4eb83961e2cffc757605983b4d33d00be878a"
-    julia_version = "1.12.4"
+    input_sha = "ca9e4eff3637e7fcf6a64d3e280227ee6a8d5d05040871e85e09fb074de899e9"
+    julia_version = "1.12.6"
 -->
 
 
@@ -55,7 +55,7 @@ end</code></pre>
     EvoTreeClassifier = @load EvoTreeClassifier pkg = EvoTrees verbosity = 0
     RandomForestClassifier = @load RandomForestClassifier pkg = DecisionTree verbosity = 0
 end</code></pre>
-<pre class="code-output documenter-example-output" id="var-#540#dic">MLJDecisionTreeInterface.RandomForestClassifier</pre>
+<pre class="code-output documenter-example-output" id="var-#544#dic">MLJDecisionTreeInterface.RandomForestClassifier</pre>
 
 
 <div class="markdown"><h2 id="Generate-LPLR-data">Generate LPLR data</h2></div>
@@ -73,7 +73,7 @@ data_lplr = make_lplr_LZZ2020(1000, alpha = 0.5, rng = StableRNG(42))</code></pr
         matching(model, data_lplr.x, data_lplr.y)
     end
 end</code></pre>
-<pre class="code-output documenter-example-output" id="var-hash135420">11-element Vector{NamedTuple{(:name, :package_name, :is_supervised, :abstract_type, :constructor, :deep_properties, :docstring, :fit_data_scitype, :human_name, :hyperparameter_ranges, :hyperparameter_types, :hyperparameters, :implemented_methods, :inverse_transform_scitype, :is_pure_julia, :is_wrapper, :iteration_parameter, :load_path, :package_license, :package_url, :package_uuid, :predict_scitype, :prediction_type, :reporting_operations, :reports_feature_importances, :supports_class_weights, :supports_online, :supports_training_losses, :supports_weights, :tags, :target_in_fit, :transform_scitype, :input_scitype, :target_scitype, :output_scitype)}}:
+<pre class="code-output documenter-example-output" id="var-hash135420">12-element Vector{NamedTuple{(:name, :package_name, :is_supervised, :abstract_type, :constructor, :deep_properties, :docstring, :fit_data_scitype, :human_name, :hyperparameter_ranges, :hyperparameter_types, :hyperparameters, :implemented_methods, :inverse_transform_scitype, :is_pure_julia, :is_wrapper, :iteration_parameter, :load_path, :package_license, :package_url, :package_uuid, :predict_scitype, :prediction_type, :reporting_operations, :reports_feature_importances, :supports_class_weights, :supports_online, :supports_training_losses, :supports_weights, :tags, :target_in_fit, :transform_scitype, :input_scitype, :target_scitype, :output_scitype)}}:
  (name = CatBoostRegressor, package_name = CatBoost, ... )
  (name = DecisionTreeRegressor, package_name = BetaML, ... )
  (name = EvoTreeGaussian, package_name = EvoTrees, ... )
@@ -84,7 +84,8 @@ end</code></pre>
  (name = NeuralNetworkRegressor, package_name = MLJFlux, ... )
  (name = PartLS, package_name = PartitionedLS, ... )
  (name = RandomForestRegressor, package_name = BetaML, ... )
- (name = SRRegressor, package_name = SymbolicRegression, ... )</pre>
+ (name = SRRegressor, package_name = SymbolicRegression, ... )
+ (name = SRTestRegressor, package_name = SymbolicRegression, ... )</pre>
 
 <pre class='language-julia'><code class='language-julia'>begin
     # Find matching models for d
@@ -92,7 +93,7 @@ end</code></pre>
         matching(model, data_lplr.x, data_lplr.d)
     end
 end</code></pre>
-<pre class="code-output documenter-example-output" id="var-hash120331">11-element Vector{NamedTuple{(:name, :package_name, :is_supervised, :abstract_type, :constructor, :deep_properties, :docstring, :fit_data_scitype, :human_name, :hyperparameter_ranges, :hyperparameter_types, :hyperparameters, :implemented_methods, :inverse_transform_scitype, :is_pure_julia, :is_wrapper, :iteration_parameter, :load_path, :package_license, :package_url, :package_uuid, :predict_scitype, :prediction_type, :reporting_operations, :reports_feature_importances, :supports_class_weights, :supports_online, :supports_training_losses, :supports_weights, :tags, :target_in_fit, :transform_scitype, :input_scitype, :target_scitype, :output_scitype)}}:
+<pre class="code-output documenter-example-output" id="var-hash120331">12-element Vector{NamedTuple{(:name, :package_name, :is_supervised, :abstract_type, :constructor, :deep_properties, :docstring, :fit_data_scitype, :human_name, :hyperparameter_ranges, :hyperparameter_types, :hyperparameters, :implemented_methods, :inverse_transform_scitype, :is_pure_julia, :is_wrapper, :iteration_parameter, :load_path, :package_license, :package_url, :package_uuid, :predict_scitype, :prediction_type, :reporting_operations, :reports_feature_importances, :supports_class_weights, :supports_online, :supports_training_losses, :supports_weights, :tags, :target_in_fit, :transform_scitype, :input_scitype, :target_scitype, :output_scitype)}}:
  (name = CatBoostRegressor, package_name = CatBoost, ... )
  (name = DecisionTreeRegressor, package_name = BetaML, ... )
  (name = EvoTreeGaussian, package_name = EvoTrees, ... )
@@ -103,16 +104,17 @@ end</code></pre>
  (name = NeuralNetworkRegressor, package_name = MLJFlux, ... )
  (name = PartLS, package_name = PartitionedLS, ... )
  (name = RandomForestRegressor, package_name = BetaML, ... )
- (name = SRRegressor, package_name = SymbolicRegression, ... )</pre>
+ (name = SRRegressor, package_name = SymbolicRegression, ... )
+ (name = SRTestRegressor, package_name = SymbolicRegression, ... )</pre>
 
 
 <div class="markdown"><h2 id="Estimate-a-simple-model">Estimate a simple model</h2></div>
 
 <pre class='language-julia'><code class='language-julia'>begin
     # Simple LPLR with RandomForest
-    ml_M = RandomForestClassifier()
-    ml_t = RandomForestRegressor()
-    ml_m = RandomForestRegressor()
+    ml_M = RandomForestClassifier(rng = StableRNG(42))
+    ml_t = RandomForestRegressor(rng = StableRNG(42))
+    ml_m = RandomForestRegressor(rng = StableRNG(42))
 
     dml_lplr_simple = DoubleML.DoubleMLLPLR(data_lplr, ml_M, ml_t, ml_m, score = :nuisance_space)
 
@@ -121,13 +123,13 @@ end</code></pre>
 end</code></pre>
 <pre class="code-output documenter-example-output" id="var-ml_t">DoubleMLLPLR{Float32, MLJDecisionTreeInterface.RandomForestClassifier, MLJDecisionTreeInterface.RandomForestRegressor, MLJDecisionTreeInterface.RandomForestRegressor, MLJDecisionTreeInterface.RandomForestRegressor}
 ==========================
-StatsBase.CoefTable(Any[[0.5600261688232422], [0.07653645426034927], [7.317116737365723], [2.533554434762229e-13], [0.41001747496856017], [0.7100348626779243]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
+StatsBase.CoefTable(Any[[0.5794071555137634], [0.07449068874120712], [7.778249263763428], [7.353507254078456e-15], [0.4334080883974139], [0.725406222630113]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
 
 <pre class='language-julia'><code class='language-julia'>coeftable(dml_lplr_simple)</code></pre>
 <pre class="code-output documenter-example-output" id="var-hash360715">────────────────────────────────────────────────────────────────────
    Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
 ────────────────────────────────────────────────────────────────────
-d  0.560026   0.0765365     7.32    &lt;1e-12     0.410017     0.710035
+d  0.579407   0.0744907     7.78    &lt;1e-14     0.433408     0.725406
 ────────────────────────────────────────────────────────────────────</pre>
 
 
@@ -142,7 +144,7 @@ d  0.560026   0.0765365     7.32    &lt;1e-12     0.410017     0.710035
     ]
 
     ml_M_iterated = IteratedModel(
-        EvoTreeClassifier(max_depth = 4, eta = 0.01),
+        EvoTreeClassifier(max_depth = 4, eta = 0.01, seed = 42),
         resampling = Holdout(),
         measure = cross_entropy,
         iteration_parameter = :nrounds,
@@ -150,7 +152,7 @@ d  0.560026   0.0765365     7.32    &lt;1e-12     0.410017     0.710035
     )
 
     ml_t_iterated = IteratedModel(
-        EvoTreeRegressor(max_depth = 4, eta = 0.01),
+        EvoTreeRegressor(max_depth = 4, eta = 0.01, seed = 42),
         resampling = Holdout(),
         measure = mav,
         iteration_parameter = :nrounds,
@@ -158,7 +160,7 @@ d  0.560026   0.0765365     7.32    &lt;1e-12     0.410017     0.710035
     )
 
     ml_m_iterated = IteratedModel(
-        EvoTreeRegressor(max_depth = 4, eta = 0.01),
+        EvoTreeRegressor(max_depth = 4, eta = 0.01, seed = 42),
         resampling = Holdout(),
         measure = mae,
         iteration_parameter = :nrounds,
@@ -173,15 +175,15 @@ d  0.560026   0.0765365     7.32    &lt;1e-12     0.410017     0.710035
 
 
 end</code></pre>
-<pre class="code-output documenter-example-output" id="var-controls">DoubleMLLPLR{Float32, MLJIteration.ProbabilisticIteratedModel{EvoTrees.EvoTreeClassifier}, MLJIteration.DeterministicIteratedModel{EvoTrees.EvoTreeRegressor}, MLJIteration.DeterministicIteratedModel{EvoTrees.EvoTreeRegressor}, MLJIteration.DeterministicIteratedModel{EvoTrees.EvoTreeRegressor}}
+<pre class="code-output documenter-example-output" id="var-controls">DoubleMLLPLR{Float32, MLJIteration.ProbabilisticIteratedModel{EvoTrees.EvoTreeClassifier, Nothing}, MLJIteration.DeterministicIteratedModel{EvoTrees.EvoTreeRegressor, Nothing}, MLJIteration.DeterministicIteratedModel{EvoTrees.EvoTreeRegressor, Nothing}, MLJIteration.DeterministicIteratedModel{EvoTrees.EvoTreeRegressor, Nothing}}
 ==========================
-StatsBase.CoefTable(Any[[0.5177592039108276], [0.06866498291492462], [7.540367603302002], [4.6864848860054194e-14], [0.383178310398517], [0.6523400974231383]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
+StatsBase.CoefTable(Any[[0.5143537521362305], [0.06825204938650131], [7.536092281341553], [4.8426394865056066e-14], [0.38058219346763855], [0.6481253108048224]], ["Estimate", "Std. Error", "z value", "Pr(&gt;|z|)", "Lower 95.0%", "Upper 95.0%"], ["d"], 4, 3)</pre>
 
 <pre class='language-julia'><code class='language-julia'>coeftable(dml_lplr_iterated)</code></pre>
 <pre class="code-output documenter-example-output" id="var-hash950978">────────────────────────────────────────────────────────────────────
    Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
 ────────────────────────────────────────────────────────────────────
-d  0.517759    0.068665     7.54    &lt;1e-13     0.383178      0.65234
+d  0.514354    0.068252     7.54    &lt;1e-13     0.380582     0.648125
 ────────────────────────────────────────────────────────────────────</pre>
 
 <!-- PlutoStaticHTML.End -->

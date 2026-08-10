@@ -9,6 +9,36 @@ Check if the model has been fitted.
 """
 StatsAPI.isfitted(obj::AbstractDoubleML) = !isnan(obj.coef)
 
+function _invalidate_bootstrap!(obj::AbstractDoubleML{T}) where {T}
+    obj.has_bootstrapped = false
+    obj.boot_t_stat = zeros(T, 0, 0, 0)
+    obj.boot_method = nothing
+    obj.n_rep_boot = 0
+    return obj
+end
+
+function _reset_common_fit_state!(obj::AbstractDoubleML{T}) where {T}
+    nan = T(NaN)
+    obj.coef = nan
+    obj.se = nan
+    fill!(obj.all_coef, nan)
+    fill!(obj.all_se, nan)
+    fill!(obj.all_psi, nan)
+    fill!(obj.all_psi_a, nan)
+    fill!(obj.all_psi_b, nan)
+    obj.learner_performance = (;)
+    _invalidate_bootstrap!(obj)
+    return obj
+end
+
+_reset_fit_state!(obj::AbstractDoubleML) = _reset_common_fit_state!(obj)
+
+function _reset_fit_state!(obj::DoubleMLLPLR{T}) where {T}
+    _reset_common_fit_state!(obj)
+    obj.coef_start_val = T(NaN)
+    return obj
+end
+
 """
     coef(obj::AbstractDoubleML) -> Vector{Float64}
 
@@ -79,8 +109,8 @@ StatsAPI.confint(obj::AbstractDoubleML, level::Real) = confint(obj; level = leve
 function _confint_pointwise(obj::AbstractDoubleML, level::Real)
     alpha = 1.0 - level
     z = quantile(Normal(), 1.0 - alpha / 2)
-    lower = obj.coef - z * obj.se
-    upper = obj.coef + z * obj.se
+    lower = median(obj.all_coef .- z .* obj.all_se)
+    upper = median(obj.all_coef .+ z .* obj.all_se)
     return hcat(lower, upper)
 end
 
