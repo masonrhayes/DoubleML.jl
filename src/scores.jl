@@ -16,11 +16,11 @@ This module provides score functions for different DML model types:
 Convert treatment vector to numeric for arithmetic operations.
 Type-stable via dispatch.
 """
-to_numeric(d::AbstractVector{T}) where {T <: Number} = d
+to_numeric(d::AbstractVector{T}) where {T <: AbstractFloat} = d
 
-to_numeric(d::CategoricalVector{T}) where {T} = unwrap.(d)
+to_numeric(d::CategoricalVector{T}) where {T <: Real} = unwrap.(d)
 
-to_numeric(d::AbstractVector) = float.(d)
+to_numeric(d::AbstractVector{T}) where {T <: Real} = float.(d)
 
 """
     get_score_name(score::AbstractScore) -> Symbol
@@ -185,7 +185,7 @@ end
 
 Score function for LPLR using nuisance space estimation.
 
-Computes: ``\\psi(W, \\beta, \\eta) = \\psi(X){Ye^{(\\beta D)} - (1-Y)e^{(r_0(X))}}{D - m_0(X)}``
+Computes: ``\\psi(W, \\beta, \\eta) = \\psi(X){Ye^{(-\\beta D)} - (1-Y)e^{(r_0(X))}}{D - m_0(X)}``
 where ``\\psi(X) = \\text{expit}(-r_0(X))``
 
 # References
@@ -336,18 +336,16 @@ function compute_score_deriv(
         coef::Real,
         score_elements::NamedTuple
     )
-    # Compute r_hat dynamically
     r_hat = @. score_elements.t_hat - coef * score_elements.a_hat
-
-    # psi_hat = expit(-r_hat)
     psi_hat = logistic.(-r_hat)
 
-    # Derivative with respect to coef (accounting for r_hat dependence)
-    # d(psi_hat)/d(coef) = psi_hat * (1-psi_hat) * a_hat  (chain rule through r_hat)
-    # Full derivative is complex; for Newton method we use implicit derivative
-
-    deriv_1 = @. -score_elements.y * score_elements.d * exp(-coef * score_elements.d)
-    return @. psi_hat * score_elements.d_tilde * deriv_1
+    # Write the score as q(A-B), where q=expit(-r),
+    # A=y*exp(-coef*d)*d_tilde and B=(1-y)*exp(r)*d_tilde.
+    # Since r'= -a, q'=a*q*(1-q), A'=-d*A and B'=-a*B.
+    A = @. score_elements.y * exp(-coef * score_elements.d) * score_elements.d_tilde
+    B = @. (1 - score_elements.y) * exp(r_hat) * score_elements.d_tilde
+    return @. score_elements.a_hat * psi_hat * (1 - psi_hat) * (A - B) +
+        psi_hat * (-score_elements.d * A + score_elements.a_hat * B)
 end
 
 """
@@ -360,11 +358,13 @@ function compute_score_deriv(
         coef::Real,
         score_elements::NamedTuple
     )
-    # Compute r_hat dynamically
-    r_hat = @. score_elements.t_hat - coef * score_elements.a_hat
-
-    expit_val = logistic.(coef .* score_elements.d .+ r_hat)
-    return @. -score_elements.d * expit_val * (1 - expit_val) * score_elements.d_tilde
+    # coef*d + r(coef) = t + coef*(d-a), so its total derivative
+    # is d-a rather than d.
+    linear_predictor = @. score_elements.t_hat +
+        coef * (score_elements.d - score_elements.a_hat)
+    expit_val = logistic.(linear_predictor)
+    return @. -(score_elements.d - score_elements.a_hat) * expit_val *
+        (1 - expit_val) * score_elements.d_tilde
 end
 
 """
