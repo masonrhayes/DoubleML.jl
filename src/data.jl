@@ -28,7 +28,7 @@ end
 
 Check if a variable is binary with values 0 and 1.
 """
-function check_binary(v::AbstractVector{T}) where T <: Union{Real, Missing}
+function check_binary(v::AbstractVector{T}) where {T <: Union{Real, Missing}}
     non_missing = skipmissing(v)
     isempty(non_missing) && return false
     return all(x -> x == 0 || x == 1, non_missing)

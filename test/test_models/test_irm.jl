@@ -278,7 +278,7 @@ LogisticClassifier = @load LogisticClassifier pkg = MLJLinearModels verbosity = 
             model = EvoTreeRegressor(),
             resampling = Holdout(fraction_train = 0.8),
             measure = rmse,
-            controls = [Step(1), Patience(10), TimeLimit(t=0.04)]
+            controls = [Step(1), Patience(10), TimeLimit(t = 0.04)]
         )
 
         # For ml_m (propensity score E[D|X])
@@ -286,7 +286,7 @@ LogisticClassifier = @load LogisticClassifier pkg = MLJLinearModels verbosity = 
             model = EvoTreeClassifier(),
             resampling = Holdout(fraction_train = 0.8),
             measure = log_loss,
-            controls = [Step(1), Patience(10), TimeLimit(t=0.04)]
+            controls = [Step(1), Patience(10), TimeLimit(t = 0.04)]
         )
 
         # Create and fit IRM model with ATE score
