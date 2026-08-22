@@ -104,7 +104,10 @@ function construct_model(model_name::String, data, score_config::Dict, learner_n
         n_folds = CONFIG["model_fitting"]["n_folds"]
         n_rep = CONFIG["model_fitting"]["n_rep"]
 
-        return DoubleMLLPLR(data, ml_M, ml_t, ml_m; score = score, n_folds = n_folds, n_rep = n_rep)
+        return DoubleMLLPLR(
+            data, ml_M, ml_t, ml_m;
+            score = score, n_folds = n_folds, n_folds_inner = n_folds, n_rep = n_rep
+        )
     end
 
     error("Unknown model: $model_name")

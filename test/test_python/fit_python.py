@@ -120,7 +120,7 @@ def construct_model(model_name, data_path, score_config, learner_name, config):
         
         model = DoubleMLLPLR(
             dml_data, ml_M=ml_M, ml_t=ml_t, ml_m=ml_m,
-            n_folds=N_FOLDS, n_rep=N_REP, score=score
+            n_folds=N_FOLDS, n_folds_inner=N_FOLDS, n_rep=N_REP, score=score
         )
     else:
         raise ValueError(f"Unknown model: {model_name}")

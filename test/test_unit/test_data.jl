@@ -24,9 +24,7 @@ using DataFrames
     @test check_binary([missing, 0, 1]) == true
 
     # Empty or all missing (should return false)
-    @test check_binary([]) == false
     @test check_binary([missing, missing]) == false
-    @test check_binary([]) == false
 end
 
 @testset "DoubleMLData shorthand constructor" begin

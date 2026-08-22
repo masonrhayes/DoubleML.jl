@@ -292,7 +292,7 @@ Implements: E[Y | D, X] = expit{β_0·D + r_0(X)} where Y ∈ {0, 1}
 - `ml_m::Mm`: Model for m(X) = E[D | X, Y=0] (nuisance_space) or E[D | X] (instrument)
 - `ml_a::Ma`: Model for a(X) = E[D | X]
 - `n_folds::Int`: Number of outer cross-fitting folds
-- `n_folds_inner::Int`: Number of inner folds for preliminary estimation
+- `n_folds_inner::Int`: Number of inner folds for leakage-free generated targets
 - `n_rep::Int`: Number of sample splitting repetitions
 - `score_obj::AbstractScore`: Score function type (NuisanceSpaceScore or InstrumentScore)
 - `n_folds_tune::Int`: Folds for tuning (0 = full sample)
@@ -300,10 +300,10 @@ Implements: E[Y | D, X] = expit{β_0·D + r_0(X)} where Y ∈ {0, 1}
 - `se::T`: Standard error
 - `all_coef::Vector{T}`: Coefficient estimates for each repetition
 - `all_se::Vector{T}`: Standard errors for each repetition
-- `coef_start_val::T`: Preliminary estimate used as starting value
+- `coef_start_val::T`: Deprecated compatibility field; unused and always `NaN`
 - `all_psi::Matrix{T}`: Influence function values (n_obs × n_rep)
 - `all_psi_a::Matrix{T}`: Derivative of score (n_obs × n_rep)
-- `all_psi_b::Matrix{T}`: Score values at estimated coefficient (n_obs × n_rep)
+- `all_psi_b::Matrix{T}`: Local linearization offset for the nonlinear score (n_obs × n_rep)
 - `has_bootstrapped::Bool`: Whether bootstrap has been performed
 - `boot_t_stat::Array{T, 3}`: Bootstrap t-statistics (n_rep_boot × n_coefs × n_rep)
 - `boot_method::Union{AbstractBootstrapMethod, Symbol, Nothing}`: Bootstrap method used

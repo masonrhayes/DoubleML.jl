@@ -11,7 +11,7 @@ Includes:
 
 Coerce target variable to appropriate type for MLJ model.
 
-For models that wrap other models (e.g., conformal prediction models),
+For models that wrap other models (e.g., iterated models, self-tuning models, etc.),
 this function attempts to extract the base model and coerce based on its type.
 """
 function coerce_target(y::AbstractVector, model)
@@ -104,6 +104,40 @@ function draw_sample_splitting(
     end
 
     return all_smpls
+end
+
+"""
+    draw_double_sample_splitting(all_smpls_outer, n_folds_inner; rng)
+
+Draw inner folds separately within every outer training sample. The returned
+structure is indexed by repetition, outer fold, and inner fold. All indices are
+in the coordinate system of the original data.
+"""
+function draw_double_sample_splitting(
+        all_smpls_outer::AbstractVector, n_folds_inner::Int;
+        rng::AbstractRNG = Random.default_rng()
+    )
+    n_folds_inner >= 2 || throw(ArgumentError("n_folds_inner must be >= 2"))
+
+    return map(all_smpls_outer) do smpls_outer
+        map(smpls_outer) do (outer_train, _)
+            n_folds_inner <= length(outer_train) || throw(
+                ArgumentError(
+                    "n_folds_inner ($n_folds_inner) exceeds the outer training " *
+                        "sample size ($(length(outer_train)))"
+                )
+            )
+            local_smpls = first(
+                draw_sample_splitting(
+                    length(outer_train), n_folds_inner, 1; rng = rng
+                )
+            )
+            [
+                (outer_train[inner_train], outer_train[inner_test]) for
+                    (inner_train, inner_test) in local_smpls
+            ]
+        end
+    end
 end
 
 """

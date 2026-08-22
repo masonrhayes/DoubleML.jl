@@ -2,6 +2,7 @@ using DoubleML
 using Test
 using Random
 using StableRNGs
+using DoubleML: draw_double_sample_splitting
 
 @testset "draw_sample_splitting" begin
     @testset "Basic functionality" begin
@@ -185,6 +186,33 @@ using StableRNGs
         # Test sets should cover all observations in order
         @test sort(all_test) == 1:n_obs
     end
+end
+
+@testset "draw_double_sample_splitting" begin
+    outer = draw_sample_splitting(120, 3, 2; rng = StableRNG(91))
+    inner = draw_double_sample_splitting(outer, 4; rng = StableRNG(92))
+
+    @test length(inner) == 2
+    for r in eachindex(outer)
+        @test length(inner[r]) == 3
+        for k in eachindex(outer[r])
+            outer_train, outer_test = outer[r][k]
+            inner_tests = Int[]
+            for (inner_train, inner_test) in inner[r][k]
+                @test issubset(inner_train, outer_train)
+                @test issubset(inner_test, outer_train)
+                @test isempty(intersect(inner_train, outer_test))
+                @test isempty(intersect(inner_test, outer_test))
+                @test isempty(intersect(inner_train, inner_test))
+                append!(inner_tests, inner_test)
+            end
+            @test sort(inner_tests) == sort(outer_train)
+        end
+    end
+
+    @test_throws ArgumentError draw_double_sample_splitting(outer, 1)
+    tiny_outer = [[([1, 2], [3])]]
+    @test_throws ArgumentError draw_double_sample_splitting(tiny_outer, 3)
 end
 
 @testset "get_conditional_sample_splitting" begin
