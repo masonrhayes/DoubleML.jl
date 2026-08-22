@@ -47,7 +47,7 @@ jobs:
           uv pip install --python=test/test_python/.venv numpy pandas doubleml xgboost scikit-learn
 
       - name: Install dependencies
-        run: julia --project=. -e 'using Pkg; Pkg.instantiate()'
+        run: julia --project=. -e 'using Pkg; Pkg.instantiate(workspace=true)'
 
       - name: Run tests
         run: julia --project=. -e 'using Pkg; Pkg.test()'
@@ -85,7 +85,7 @@ jobs:
       - uses: julia-actions/cache@v2
 
       - name: Install dependencies
-        run: julia --project=. -e 'using Pkg; Pkg.instantiate()'
+        run: julia --project=. -e 'using Pkg; Pkg.instantiate(workspace=true)'
 
       - name: Build and Deploy
         env:

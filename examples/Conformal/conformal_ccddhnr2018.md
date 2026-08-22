@@ -25,7 +25,7 @@
 <!--
     # This information is used for caching.
     [PlutoStaticHTML.State]
-    input_sha = "9e18930474650da55343ffa77c3243c48ce029d9acb0495a70189ad27d4de884"
+    input_sha = "dd06e622458067f35355e1bf35e22409c49e3e7120513dfb61caad58fe00db6b"
     julia_version = "1.12.6"
 -->
 
@@ -47,7 +47,7 @@
 <div class="markdown"><p>Sample splitting, typically in the form of cross-fitting, is one of the key features of standard Frequentist Double Machine Learning (FDML) which aims to solve the issue of <em>over-fitting bias</em>. </p><p>Cross-fitting alleviates the "<em>potential dependence between nuisance estimates and parts of the data used for estimating the target parameter</em>" (<a href="https://arxiv.org/pdf/2504.08324">Ahrens et al (2025)</a>).</p><p>As stated in Ahrens et al (2025), p 4:</p><p>"...Because <span class="tex">\(\hat{\eta}\)</span> is an estimator, it is itself a random function of the data. <span class="tex">\(\hat{\eta}\)</span> is thus generally correlated with the observations <span class="tex">\(\{W_i\}_{i=1}^n\)</span> also used in the estimating equation <span class="tex">\(\frac{1}{n}\sum_{i=1}^n m(W_i; \theta, \hat{\eta})\)</span>. When this dependence is strong, for example due to "overfitting", it may generate large differences between <span class="tex">\(\frac{1}{n}\sum_{i=1}^n m(W_i; \theta, \hat{\eta})\)</span> and <span class="tex">\(\frac{1}{n}\sum_{i=1}^n m(W_i; \theta, \eta_0)\)</span>, which results in poor performance of <span class="tex">\(\hat{\theta}\)</span>."</p></div>
 
 
-<div class="markdown"><p>In practice, however, there are a few issues that cross-fitting does not resolve: </p><ul><li><p>First, in the presence of large data, a <strong>practical</strong> issue is that cross-fitting can be computationally costly as it requires fitting a model at least 1 time for each fold of the cross-validation set. </p></li><li><p>Second, and more fundamentally, a <strong>theoretical</strong> issue is that cross-fitting does not account for <em>uncertainty</em> in the predictions <span class="tex">\(\hat{\eta}\)</span>, but rather treats them as point estimates. Any uncertainty in these point estimates is not propogated into the causal inference for <span class="tex">\(\theta\)</span>. Thus, FDML estimates of the causal parameter, <span class="tex">\(\hat{\theta}\)</span>, often do not have good <em>coverage</em> - e.g., using simulated data where the true causal effect is known, FDML often leads to confidence intervals which do not include the true effect.</p></li></ul><p>As shown in this notebook, however, over-fitting bias can be alleviated without cross-fitting! If we instead think of our estimates for <span class="tex">\(\hat{\eta}\)</span> as following some <em>joint probability distribution</em>, we can simply fit one time, using one holdout set for the conformal prediction calibration; we can then directly account for the uncertainty in our nuisance estimates, and propagate this uncertainty through to the final inference stage.</p><div class="admonition is-hypothesis"><header class="admonition-header">Hypothesis</header><div class="admonition-body"><p>By <em>sampling</em> from the joint probability distribution for each prediction from the nuisance models, the hypothesis is that we can maintain Neyman orthogonality and avoid over-fitting bias, and make better inference decisions by improving uncertainty quantification.</p></div></div></div>
+<div class="markdown"><p>In practice, however, there are a few issues that cross-fitting does not resolve: </p><ul><li><p>First, in the presence of large data, a <strong>practical</strong> issue is that cross-fitting can be computationally costly as it requires fitting a model at least 1 time for each fold of the cross-validation set. </p></li><li><p>Second, and more fundamentally, a <strong>theoretical</strong> issue is that cross-fitting does not account for <em>uncertainty</em> in the predictions <span class="tex">\(\hat{\eta}\)</span>, but rather treats them as point estimates. Any uncertainty in these point estimates is not propagated into the causal inference for <span class="tex">\(\theta\)</span>. Thus, FDML estimates of the causal parameter, <span class="tex">\(\hat{\theta}\)</span>, often do not have good <em>coverage</em> - e.g., using simulated data where the true causal effect is known, FDML often leads to 95% confidence intervals which include the true effect less than 95% of the time.</p></li></ul><p>As shown in this notebook, however, over-fitting bias can be alleviated without cross-fitting! If we instead think of our estimates for <span class="tex">\(\hat{\eta}\)</span> as following some <em>joint probability distribution</em>, we can simply fit one time, using one holdout set for the conformal prediction calibration; we can then directly account for the uncertainty in our nuisance estimates, and propagate this uncertainty through to the final inference stage.</p><div class="admonition is-hypothesis"><header class="admonition-header">Hypothesis</header><div class="admonition-body"><p>By <em>sampling</em> from the joint probability distribution for each prediction from the nuisance models, the hypothesis is that we can maintain Neyman orthogonality and avoid over-fitting bias, and make better inference decisions by improving uncertainty quantification.</p></div></div></div>
 
 <pre class='language-julia'><code class='language-julia'>begin
     using DoubleML
@@ -82,17 +82,17 @@ end;</code></pre>
 <div class="markdown"><div class="admonition is-note"><header class="admonition-header">Note</header><div class="admonition-body"><p>The below is specifically a counter-example to show where standard DML may fail in terms of coverage, where conformal DML may succeed. A large-scale assessment across multiple random seeds would be needed for a more comprehensive evaluation of the performance of the different methods.</p></div></div></div>
 
 <pre class='language-julia'><code class='language-julia'>begin
-    seed = 33
+    seed = 1330
     rng = StableRNG(seed)
 
     true_alpha = 0.5
 
     n_obs = 500
-    dim_x = 250
+    dim_x = 200
     data = make_plr_CCDDHNR2018(n_obs; dim_x = dim_x, alpha = true_alpha, rng = rng)
 end
 </code></pre>
-<pre class="code-output documenter-example-output" id="var-rng">DoubleMLData{Float32, Vector{Float32}}(Float32[-0.90963966, 1.9374812, -0.25847855, 0.47272336, 0.64437914, -0.10265304, -0.9905324, 0.94382477, -0.72001314, 1.7434089  …  0.6319347, -2.9627357, 0.44794837, -0.48833418, -2.304316, -2.1842134, 2.6824763, -2.6089628, -0.81449336, 0.043069214], Float32[0.43613905, 0.9887245, -1.0767803, -0.10072567, 0.7472056, 1.2857444, -1.9633851, 0.62001693, -0.39885935, -0.22904095  …  0.075055815, -1.5850143, 1.1537043, 0.29475603, -2.7867234, -3.6445894, 1.4557726, -1.6433831, 0.831413, -0.31156892], Float32[0.08301931 -1.0187424 … 0.7081886 1.3663985; 0.6239522 0.4052753 … -1.0074859 -0.53348225; … ; 0.23453191 1.2632104 … -0.78497356 -1.0187758; 0.61482817 -0.8486912 … -1.1574534 -1.8353295], 500, 250, :y, :d, [:X1, :X2, :X3, :X4, :X5, :X6, :X7, :X8, :X9, :X10  …  :X241, :X242, :X243, :X244, :X245, :X246, :X247, :X248, :X249, :X250])</pre>
+<pre class="code-output documenter-example-output" id="var-rng">DoubleMLData{Float32, Vector{Float32}}(Float32[0.18091363, 2.067306, 3.664946, -1.274438, -0.3135039, -0.7701451, -2.0895598, -0.19495754, 2.1093516, -0.400096  …  1.4303278, 0.6266101, 1.8354708, 2.851835, 0.23475152, 2.9664168, 1.3354713, 1.1360786, 0.43573543, 0.62686586], Float32[-0.17868796, 1.9909229, 0.7343608, 0.198705, 1.2223384, -0.38353926, -3.2097826, 0.17862228, 1.5148652, 0.044839736  …  -0.27187628, -0.27182662, 1.4056993, 1.7070878, 1.8723645, 0.25217316, 0.6925375, 1.0002018, 0.71817034, -0.09409587], Float32[-0.111322954 0.7321712 … 1.3219721 -0.57778966; 1.667957 0.704824 … -0.1738328 -1.7231665; … ; -0.5558633 -0.78059614 … 0.23636128 -1.588617; -0.48422313 -0.51050246 … -0.9031398 -0.49341583], 500, 200, :y, :d, [:X1, :X2, :X3, :X4, :X5, :X6, :X7, :X8, :X9, :X10  …  :X191, :X192, :X193, :X194, :X195, :X196, :X197, :X198, :X199, :X200])</pre>
 
 
 <div class="markdown"><h2 id="Estimating-a-Conformal-Double-Machine-Learning-(CDML)-model">Estimating a Conformal Double Machine Learning (CDML) model</h2></div>
@@ -101,7 +101,7 @@ end
     Random.seed!(seed)
 
     # Set the coverage for the nuisance models.
-    coverage = 0.999
+    coverage = 0.95
 
     ml_l = conformal_model(
         RandomForestRegressor(rng = rng);
@@ -122,7 +122,7 @@ end</code></pre>
 <pre class="code-output documenter-example-output" id="var-coverage">────────────────────────────────────────────────────────────────────
    Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
 ────────────────────────────────────────────────────────────────────
-d  0.544354   0.0417292    13.04    &lt;1e-38     0.463793     0.625546
+d  0.574494   0.0446105    12.88    &lt;1e-37     0.486311     0.658291
 ────────────────────────────────────────────────────────────────────</pre>
 
 <pre class='language-julia'><code class='language-julia'># Test against standard PLR model
@@ -144,14 +144,90 @@ end</code></pre>
 <pre class="code-output documenter-example-output" id="var-model">────────────────────────────────────────────────────────────────────
    Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
 ────────────────────────────────────────────────────────────────────
-d  0.593208   0.0381025    15.57    &lt;1e-53     0.518529     0.667888
+d  0.577848   0.0362414    15.94    &lt;1e-56     0.506816      0.64888
 ────────────────────────────────────────────────────────────────────</pre>
 
 
 <div class="markdown"><div class="admonition is-results"><header class="admonition-header">Results</header><div class="admonition-body"><p>The above example shows that the conformal model ran in roughly 4-5x faster than the standard model that uses 5-fold cross-fitting. In addition, the conformal model includes the true causal effect, whereas the standard model does not. </p></div></div><p>As noted above, this is a bit of a contrived example. In anecdotal testing, the conformal model appears to give better empirical coverage. However, more extensive testing is needed to properly evaluate the performance of the different methods.</p></div>
 
 
-<div class="markdown"><h2 id="How-does-Conformal-Double-Machine-Learning-work?">How does Conformal Double Machine Learning work?</h2><div class="admonition is-warning"><header class="admonition-header">Warning</header><div class="admonition-body"><p>This package, and the implementation of Conformal Double Machine Learning, remain experimental. </p></div></div><p>Currently, the implementation of CDML works by:</p><ul><li><p>Training the conformal models without cross-fitting. Users may specify <code>train_ratio</code> for some conformal prediction methods, but <em>predictions</em> are made on the full dataset</p></li><li><p>Obtaining conformal predictions (i.e, a tuple of a lower and upper bound for each prediction). These conformal predictions guaranteed a user-defined coverage level (e.g., 95%).</p></li><li><p>Use Monte Carlo sampling from conformal prediction intervals to propagate uncertainty, using Beta(2,2) marginals with Gaussian copula to account for correlation between the uncertainties in predictions for the outcome <span class="tex">\(\hat{l}(x)\)</span> and treatment <span class="tex">\(\hat{m}(x)\)</span>.</p></li></ul></div>
+<div class="markdown"><h2 id="How-does-Conformal-Double-Machine-Learning-work?">How does Conformal Double Machine Learning work?</h2><div class="admonition is-warning"><header class="admonition-header">Warning</header><div class="admonition-body"><p>This package, and the implementation of Conformal Double Machine Learning, remain experimental. </p></div></div><p>Currently, the main implementation of CDML (<code>DoubleMLPLRConformal</code>) works by:</p><ul><li><p>Training the conformal models without cross-fitting. Users may specify <code>train_ratio</code> for some conformal prediction methods, but <em>predictions</em> are made on the full dataset</p></li><li><p>Obtaining conformal predictions (i.e, a tuple of a lower and upper bound for each prediction). These conformal predictions guaranteed a user-defined coverage level (e.g., 95%).</p></li><li><p>Use Monte Carlo sampling from conformal prediction intervals to propagate uncertainty, using Beta(2,2) marginals with Gaussian copula to account for correlation between the uncertainties in predictions for the outcome <span class="tex">\(\hat{l}(x)\)</span> and treatment <span class="tex">\(\hat{m}(x)\)</span>.</p></li></ul></div>
+
+
+<div class="markdown"><h2 id="Alternative-CDML-variant-using-the-Unscented-Transform-(UT)">Alternative CDML variant using the Unscented Transform (UT)</h2><p>Monte Carlo sampling can be computationally intensive and stochastic. Instead of MC, this variant propagates the uncertainty in the nuisance parameters <strong>deterministically</strong> through the DML2 score function using the <a href="https://en.wikipedia.org/wiki/Unscented_transform">unscented transform</a> at second-order accuracy.</p><p>The UT variant of the CDML model (<code>DoubleMLPLRConformalUT</code>) currently works as follows:</p><h3 id="Workflow">Workflow</h3><ol><li><p><strong>Conformal model fitting</strong>: The conformal-wrapped learners <code>ml_l</code> and <code>ml_m</code> are trained to obtain prediction intervals. Users may specify <code>n_folds</code> and <code>n_rep</code> for K-fold cross-fitting (default <code>n_folds=1</code> fits on the full dataset).</p></li><li><p><strong>Conformal predictions</strong>: A lower and upper bound are obtained for each prediction, guaranteeing the user-defined coverage level (e.g., 95%).</p></li><li><p><strong>Uncertainty modeling</strong>: Prediction errors within each interval are modeled with <strong>Beta(2,2) marginals</strong>. The correlation between the errors in <span class="tex">\(\hat{l}(x)\)</span> and <span class="tex">\(\hat{m}(x)\)</span> is estimated from residuals and its uncertainty is represented via the <strong>Fisher z-transform</strong><span class="tex">\(z \sim N(\hat{z}, 1/(n-3))\)</span>.</p></li><li><p><strong>Closed-form moment propagation</strong>: For any fixed correlation, the means and covariances of the aggregated score statistics <span class="tex">\((\bar{A}, \bar{B})\)</span> are computed in <strong>closed form</strong> (O(n)) using a Gaussian copula (Isserlis cross-moments).</p></li><li><p><strong>2D Unscented Transform</strong>: The score function is propagated via the standard 2D UT (5 sigma points), yielding a mean that corrects for Jensen bias and a variance that captures second-order effects.</p></li><li><p><strong>Correlation uncertainty integration</strong>: The UT is evaluated at <strong>Gauss-Hermite quadrature</strong> points (default 3, optional 5) over the Fisher z-transform distribution. The final result mixes these components by the law of total variance.</p></li><li><p><strong>Combined inference</strong>: The reported coefficient is the UT mean. The reported standard error combines the standard DML sampling SE with the conformal-only UT variance: <span class="tex">\(SE_{total} = \sqrt{SE_{DML}^2 + Var_{UT}}\)</span>.</p></li></ol></div>
+
+<pre class='language-julia'><code class='language-julia'># Bonus: using the Unscented Transform for uncertainty propagation
+begin
+    Random.seed!(seed)
+
+    # Create and fit conformal model (UT)
+    model_conformal_ut = Ext.DoubleMLPLRConformalUT(
+        data,
+        conformal_model(
+            RandomForestRegressor(rng = rng);
+            method = :simple_inductive,
+            coverage = coverage
+        ),
+        conformal_model(
+            RandomForestRegressor(rng = rng);
+            method = :simple_inductive,
+            coverage = coverage
+        );
+        n_gh = 5
+    )
+    @time Ext.fit!(model_conformal_ut, rng = rng, verbose = 0)
+
+    coeftable(model_conformal_ut)
+end</code></pre>
+<pre class="code-output documenter-example-output" id="var-model_conformal_ut">────────────────────────────────────────────────────────────────────
+   Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
+────────────────────────────────────────────────────────────────────
+d  0.573169   0.0602595     9.51    &lt;1e-20     0.455062     0.691275
+────────────────────────────────────────────────────────────────────</pre>
+
+<pre class='language-julia'><code class='language-julia'># Comparing:
+coeftable(model)</code></pre>
+<pre class="code-output documenter-example-output" id="var-hash685020">────────────────────────────────────────────────────────────────────
+   Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
+────────────────────────────────────────────────────────────────────
+d  0.577848   0.0362414    15.94    &lt;1e-56     0.506816      0.64888
+────────────────────────────────────────────────────────────────────</pre>
+
+<pre class='language-julia'><code class='language-julia'>coeftable(model_conformal)</code></pre>
+<pre class="code-output documenter-example-output" id="var-hash568628">────────────────────────────────────────────────────────────────────
+   Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
+────────────────────────────────────────────────────────────────────
+d  0.574494   0.0446105    12.88    &lt;1e-37     0.486311     0.658291
+────────────────────────────────────────────────────────────────────</pre>
+
+<pre class='language-julia'><code class='language-julia'>coeftable(model_conformal_ut)</code></pre>
+<pre class="code-output documenter-example-output" id="var-hash150866">────────────────────────────────────────────────────────────────────
+   Estimate  Std. Error  z value  Pr(&gt;|z|)  Lower 95.0%  Upper 95.0%
+────────────────────────────────────────────────────────────────────
+d  0.573169   0.0602595     9.51    &lt;1e-20     0.455062     0.691275
+────────────────────────────────────────────────────────────────────</pre>
+
+
+<pre class="code-output documenter-example-output" id="var-hash120263">DoubleMLPLRConformalUT (Unscented Transform uncertainty propagation)
+===========================================================
+Conformal method: simple_inductive
+Coverage: 0.95
+UT parameters: α=1.0, β=2.0, κ=1.0
+GH quadrature: 5 points
+Training: Without cross-fitting)
+Sampling: Deterministic (no MC)
+
+Results:
+  Coefficient: 0.5732
+  Std. Error:  0.0603 (combined)
+  95.0% CI: [0.4551, 0.6913]
+  l-m correlation: 0.532 (±0.045 in z-space)
+
+  Variance decomposition:
+    Standard DML:   θ=0.5714, SE=0.0453
+    Conformal (UT): θ=0.5732, SE=0.0398
+    Difference:     0.0018 (UT - standard DML)
+</pre>
 
 <!-- PlutoStaticHTML.End -->
 ```

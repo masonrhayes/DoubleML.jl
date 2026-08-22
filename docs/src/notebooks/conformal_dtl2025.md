@@ -25,7 +25,7 @@
 <!--
     # This information is used for caching.
     [PlutoStaticHTML.State]
-    input_sha = "1d385d7ed87ecb790e69e6f7a363a01d64a86d1e4817c0f6af6200a7a3e76645"
+    input_sha = "0475b0c79e8e57b3bf70c8ea57d54aa3b16fcc67760190509136b19613d28834"
     julia_version = "1.12.6"
 -->
 
@@ -108,7 +108,7 @@ end</code></pre>
     Random.seed!(seed)
 
     # Set the coverage for the nuisance models.
-    coverage = 0.999
+    coverage = 0.99
 
     ml_l = conformal_model(
         EvoTreeRegressor(seed = seed);
